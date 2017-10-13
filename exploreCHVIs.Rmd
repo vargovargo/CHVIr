@@ -1,0 +1,184 @@
+---
+title: "exploreCHVIs"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+
+```
+
+## Preparing the Data
+This section installs the necessary pacakage(s) and then loads a function ('readCHVI') which will 
+1: read in an individual CHVI csv
+2: limit the columns to only those (26) of interest
+3: reorder those columns alphabetically so that they can be renamed identically
+4: rename the columns
+4a: clean up the report year field so it is handled correctly
+
+```{r prepare}
+rm(list=ls())
+library(tidyverse)
+
+
+readCHVI <- function(fileName){
+   temp <- read.csv(fileName, header=T, stringsAsFactors = F) %>% select(1:26) %>% .[,order(names(.))]
+   
+   names(temp) <- c(
+     "CA_decile",
+     "CA_RR",
+     "county_fips",
+     "county_name",
+     "denominator",
+     "estimate",
+     "geoname",
+     "geotype",
+     "geotypevalue",
+     "ind_definition",
+     "ind_id",
+     "LL_95CI",
+     "numerator",
+     "race_eth_code",
+     "race_eth_name",
+     "region_code",
+     "region_name",
+     "reportyear",
+     "RSE",
+     "SE",
+     "strata_one_code",
+     "strata_one_name",
+     "strata_two_code",
+     "strata_two_name",
+     "UL_95CI",
+     "version"
+   )
+   
+   temp$reportyear <- as.character(as.numeric(temp$reportyear))
+   
+   return(temp)
+}
+
+```
+
+## Read in individual CHIV csvs
+
+This portion reads in each of the CHVI csv files and then combines them all into a single dataframe. Set the working directory to fit your workflow.
+
+
+```{r readem}
+
+# work Local
+setwd("~/CHVI_copy/CHVIcsvs/")
+
+# work from the network
+#setwd("//phitprlcsrvip04/OHEGroup/HCI/Data/CCHVI in one folder for web/CHVIcsvs/")
+
+airConditioning <- readCHVI("./BRACE_AirConditioning_797_CO_RE_CA.csv")
+carOwnership <- readCHVI("./BRACE_CarOwnership_37_CT_PL_CO_RE_CA.csv")
+children <- readCHVI("./BRACE_children_788_CT_PL_CO_RE_CA.csv")
+disability <- readCHVI("./BRACE_Disability_795_CT_PL_CO_RE_CA.csv")
+elderly <- readCHVI("./BRACE_elderly65over_789_CT_PL_CO_RE_CA_11-8-2016.csv")
+extremeHeat <- readCHVI("./BRACE_ExtremeHeat_791_CO.csv")
+impervious <- readCHVI("./BRACE_ImperviousSurfaces_423_CT_PL_CO_RE_CA.csv")
+insurance <- readCHVI("./BRACE_Insurance_795_CT_PL_CO_RE_CA.csv")
+linguisticIso <- readCHVI("./BRACE_LinguisticIsolation_800_CT_PL_CO_RE_CA.csv")
+outdoorWorkers <- readCHVI("./BRACE_OutdoorWorkers_790_CT_PL_CO_RE_CA.csv")
+ozone <- readCHVI("./BRACE_Ozone_801_CT_PL_CO_RE_CA.csv")
+pm25 <- readCHVI("./BRACE_PM25levels_776_CT_PL_CO_RE_CA.csv")
+race <- readCHVI("./BRACE_race_795_CT_PL_CO_RE_CA.csv")
+seaLevel <- readCHVI("./BRACE_SLR_784_CT_PL_CO_RE_CA_11-1-2016.csv")
+treeCanopy <- readCHVI("./BRACE_TreeCanopy_458_CT_PL_CO_RE_CA.csv")
+wildfire <- readCHVI("./BRACE_Wildfire_786_CT_PL_CO_RE_CA.csv")
+
+
+allCHVI <- bind_rows(airConditioning,
+                     carOwnership, 
+                     children, 
+                     disability, 
+                     elderly, 
+                     extremeHeat, 
+                     impervious, 
+                     insurance, 
+                     linguisticIso,
+                     outdoorWorkers, 
+                     ozone, 
+                     pm25, 
+                     race,
+                     seaLevel,
+                     treeCanopy, 
+                     wildfire
+                     ) %>%
+  filter(ind_definition != "")
+
+head(allCHVI)
+
+```
+
+## Produce a sample plot
+
+You can now query the data to obtain the data (ie indicator, county, strata, etc.) of interest and plot the results. 
+
+```{r samplePlot1}
+allCHVI %>% 
+  filter(geotype == "CA" & estimate > 0 & ind_definition == "Percent of households with air conditioning" & race_eth_name !="Total")  %>% 
+  ggplot(aes(x=county_name, y=estimate, fill=race_eth_name)) + geom_bar(stat = "identity", position="dodge") + ggtitle("CA % of households with air conditioning (by race)")  
+  
+```
+
+
+## Add error bars 
+
+Here we add error bars to the plot previously produced. 
+
+```{r samplePlot2}
+
+allCHVI %>% 
+  filter(geotype == "CA" & estimate > 0 & ind_definition == "Percent of households with air conditioning" & race_eth_name !="Total") %>%
+  ggplot(aes(x=county_name, y=estimate,ymax = UL_95CI, ymin=LL_95CI, fill=race_eth_name)) + geom_bar(stat = "identity", position="dodge") + ggtitle("CA % of households with air conditioning (by race)") + geom_errorbar(position="dodge")
+```
+
+## Examine the data
+
+Something looks weird. The result is concerning because the 'estimates' do no always fall within the confidence intervals...
+
+We can verify this by looking at the data that we send to the plot 
+
+```{r examine1}
+allCHVI %>% 
+  filter(geotype == "CA" & estimate > 0 & ind_definition == "Percent of households with air conditioning" & race_eth_name !="Total") %>%
+  select(LL_95CI, estimate, UL_95CI)
+  
+```
+
+
+## Reproduce a graph from the VA report
+
+This will grab data on extreme heat days and produce a new chart. 
+
+```{r examineEH}
+# get list of all available indicators
+unique(allCHVI$ind_definition)
+
+# then examine the records
+allCHVI %>% 
+  filter(geotype == "CO" & ind_definition == "Projected number of extreme heat days") %>% head()
+```
+It looks like we have two records (report years) for each county, and we can use 'estimate' to get the values we are interested in seeing. 
+```{r sampleEHplot, out.width = '\\maxwidth'}
+allCHVI %>% 
+  filter(geotype == "CO" & ind_definition == "Projected number of extreme heat days") %>% 
+  ggplot(aes(x=county_name, y=estimate, fill=region_name)) + geom_bar(stat = "identity", position="dodge") + ggtitle("# of projected Extreme Heat Days")  + facet_grid(.~ reportyear) + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.25, size=5))
+
+
+```
+
+Or look at just the Bay Area and Southern Califronia counties to make things less crowded. 
+```{r sampleEHplot3, out.width = '\\maxwidth'}
+allCHVI %>% 
+  filter(geotype == "CO" & ind_definition == "Projected number of extreme heat days" &  region_name %in% c("Bay Area","Southern California")) %>% 
+  ggplot(aes(x=county_name, y=estimate, fill=reportyear)) + geom_bar(stat = "identity", position="dodge") + ggtitle("# of projected Extreme Heat Days")  + facet_grid(.~ region_name) + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.25, size=8))
+
+
+```

@@ -8,21 +8,43 @@ setwd("~/CHVI_copy/CHVIcsvs/")
 # work from the network
 # setwd("//phitprlcsrvip04/OHEGroup/HCI/Data/CCHVI in one folder for web/CHVIcsvs/")
 
-
 allCHVI <- read.csv("../allCHVI.csv", header=T)
 
-unique(allCHVI$ind_definition)
+chvisList <- data.frame(CHVI=unique(allCHVI$ind_definition), 
+                        varName = c("airCond", 
+                                    "vehOwn", 
+                                    "young",
+                                    "disability",
+                                    "elderly",
+                                    "extremeHeat",
+                                    "impervious",
+                                    "lackInsurance",
+                                    "lingIso",
+                                    "outdoorWorkers",
+                                    "ozone",
+                                    "finePM",
+                                    "raceEthn",
+                                    "seaLevel",
+                                    "canopy",
+                                    "wildfire"
+                                    ))
 
-geog = c("CO")
+turnTab <- function(indicator, name, geog){
+  
+ temp <- allCHVI %>% filter(ind_definition == indicator & geotype == geog) %>%
+    mutate(state = "California", variable = name) %>%
+    select(variable, county_name, state, estimate, region_name, race_eth_name, ind_definition) # %>% 
+   # write.csv(paste0("./TableauCHVI/",name,"TAB.csv"), row.names=FALSE)
+ return(temp)
+}
 
-elderly <- allCHVI %>% filter(ind_definition == "Percent of population aged 65 years or older" & geotype %in% geog) %>%
-  mutate(state = "California") %>%
-  write.csv("./TableauCHVI/elderlyTAB.csv", row.names=FALSE)
+CountyTab <- data.frame()
 
-carOwnership <- allCHVI %>% filter(ind_definition == "Percent of households with no vehicle ownership" & geotype %in% geog) %>%
-  mutate(state = "California") %>%
-  write.csv("./TableauCHVI/carOwnTAB.csv", row.names=FALSE)
+for(i in 1:nrow(chvisList)){
+  
+ abc <- turnTab(indicator = chvisList[i,"CHVI"], name = chvisList[i,"varName"], geog = "CO" )
+  CountyTab <- bind_rows(CountyTab, abc)
+  
+}
 
-SeaLevel <- allCHVI %>% filter(ind_definition == "Population living in sea level rise inundation areas" & geotype %in% geog) %>%
-  mutate(state = "California") %>%
-  write.csv("./TableauCHVI/carOwnTAB.csv", row.names=FALSE)
+

@@ -31,9 +31,9 @@ chvisList <- data.frame(CHVI=unique(allCHVI$ind_definition),
 
 turnTab <- function(indicator, name, geog){
   
- temp <- allCHVI %>% filter(ind_definition == indicator & geotype == geog) %>%
+ temp <- allCHVI %>% filter(ind_definition == indicator, geotype == geog) %>%
     mutate(state = "California", variable = name) %>%
-    select(variable, county_name, state, estimate, region_name, race_eth_name, ind_definition) # %>% 
+    select(variable, county_name, state, estimate, region_name, race_eth_name, ind_definition, strata_one_code) # %>% 
    # write.csv(paste0("./TableauCHVI/",name,"TAB.csv"), row.names=FALSE)
  return(temp)
 }
@@ -47,4 +47,10 @@ for(i in 1:nrow(chvisList)){
   
 }
 
+write.csv(CountyTab,"./TableauCHVI/countyTAB.csv", row.names=FALSE)
 
+
+CountyTab %>% filter(strata_one_code %in% c(3:9))
+
+  unique(CountyTab$variable)
+  

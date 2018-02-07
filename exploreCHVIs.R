@@ -103,10 +103,13 @@ unique(allCHVI$race_eth_name)
 
 # racial disparity plot for tree canopy
 allCHVI %>% 
-  filter(geotype == "CT" & 
+  filter(geotype == "CO" & 
          ind_definition == "Percent of population aged 65 years or older", 
-         race_eth_name %in% c("White","AfricanAm","Asian","Latino"))  %>% 
-  ggplot(aes(x=numerator, colour=county_name)) + stat_ecdf() + facet_grid(region_name ~race_eth_name , scales = "free_x" ) + ggtitle("racial disparity plot for tree canopy")  
+         race_eth_name %in% c("White","AfricanAm","Asian","Latino", "Total"))  %>% 
+  spread(key = race_eth_name, value = estimate) %>% mutate(gisLink= as.character(paste0("0",geotypevalue))) %>% 
+  select(county_name,region_name, gisLink, geotypevalue,AfricanAm, Asian, Latino, White, Total) %>% 
+  write.csv("~/CHVI_copy/shapes/countyElderly.csv", row.names=F)
+
 
 # racial disparity plot for vehicle ownership
 allCHVI %>% 
@@ -263,3 +266,6 @@ allCHVI %>%
   ggplot(aes(x=county_name, y=estimate, fill=region_name, group=region_name)) + geom_bar(stat = "identity", position="dodge") + ggtitle("# of projected Extreme Heat Days")  + facet_grid(.~ reportyear) + theme(axis.text.x = element_text(angle = 90, hjust = 1,size=7))
 
 
+
+wildfire %>% select(county_fips, county_name) %>% group_by(county_name) %>%
+  summarise(stcoFIPS = mean(county_fips)) %>% na.omit() %>% write.csv("~/CA_stcoFIPS_key.csv", row.names=F)

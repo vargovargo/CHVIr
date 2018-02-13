@@ -2,15 +2,8 @@ rm(list=ls())
 
 library(tidyverse)
 
-# work locally
-# setwd(dir = "~/CHVI_copy/CHVIcsvs/")
-
-# work from the network
-# setwd("//phitprlcsrvip04/OHEGroup/HCI/Data/CCHVI in one folder for web/CHVIcsvs/")
-
-
 #############################
-######### Functions #########
+######### Function ##########
 #############################
 
 simplifyCHVI <- function(indicator = "indicator", geography = "CT"){
@@ -64,7 +57,7 @@ simplifyCHVI <- function(indicator = "indicator", geography = "CT"){
    
     temp <- temp %>% 
       filter(geotype == geography, race_eth_name == "Total")  %>% 
-      select(ind_definition, county_name, geotypevalue,geotype, estimate,  ) %>%
+      select(ind_definition, county_name, geotypevalue,geotype, estimate, region_name, LL_95CI, UL_95CI) %>%
       mutate(ct10= as.character(paste0("0",geotypevalue))) %>%
       write.csv(paste0("~/CHVI_",indicator,"_",geography,".csv"),row.names=F)
     

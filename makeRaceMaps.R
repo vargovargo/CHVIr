@@ -2,13 +2,19 @@ rm(list=ls())
 
 library(tidyverse)
 library(sf)
-library(spData)
-library(spDataLarge)
+library(leaflet)
+
+setwd(dir = "~/CHVI_copy/CHVIcsvs/")
+
+# work from the network
+# setwd("//phitprlcsrvip04/OHEGroup/HCI/Data/CCHVI in one folder for web/CHVIcsvs/")
+
+counties <- st_read("../shapes/Counties2010.shp")
+tracts <- st_read("../shapes/census_tracts2010.shp")
 
 #############################
-
-
-# testFile <- "~/CHVI_copy/CHVIcsvs/BRACE_Disability_795_CT_PL_CO_RE_CA.csv"
+######### Functions #########
+#############################
 
 readCHVI <- function(fileName){
    temp <- read.csv(fileName, header=T, stringsAsFactors = F) %>% select(1:26) %>% .[,order(names(.))]
@@ -48,164 +54,190 @@ readCHVI <- function(fileName){
 }
 
 
-# work from the network
-# setwd("//phitprlcsrvip04/OHEGroup/HCI/Data/CCHVI in one folder for web/CHVIcsvs/")
 
-# airConditioning <- readCHVI("./BRACE_AirConditioning_797_CO_RE_CA.csv")
-# carOwnership <- readCHVI("./BRACE_CarOwnership_37_CT_PL_CO_RE_CA.csv")
-# children <- readCHVI("./BRACE_children_788_CT_PL_CO_RE_CA.csv")
-# disability <- readCHVI("./BRACE_Disability_795_CT_PL_CO_RE_CA.csv")
-# elderly <- readCHVI("./BRACE_elderly65over_789_CT_PL_CO_RE_CA_11-8-2016.csv")
-# extremeHeat <- readCHVI("./BRACE_ExtremeHeat_791_CO.csv")
-# impervious <- readCHVI("./BRACE_ImperviousSurfaces_423_CT_PL_CO_RE_CA.csv")
-# insurance <- readCHVI("./BRACE_Insurance_795_CT_PL_CO_RE_CA.csv")
-# linguisticIso <- readCHVI("./BRACE_LinguisticIsolation_800_CT_PL_CO_RE_CA.csv")
-# outdoorWorkers <- readCHVI("./BRACE_OutdoorWorkers_790_CT_PL_CO_RE_CA.csv")
-ozone <- readCHVI("./BRACE_Ozone_801_CT_PL_CO_RE_CA.csv")
-pm25 <- readCHVI("./BRACE_PM25levels_776_CT_PL_CO_RE_CA.csv")
-# race <- readCHVI("./BRACE_race_795_CT_PL_CO_RE_CA.csv")
-seaLevel <- readCHVI("./BRACE_SLR_784_CT_PL_CO_RE_CA_11-1-2016.csv")
-# treeCanopy <- readCHVI("./BRACE_TreeCanopy_458_CT_PL_CO_RE_CA.csv")
-wildfire <- readCHVI("./BRACE_Wildfire_786_CT_PL_CO_RE_CA.csv")
+GISbyRace <- function(indicator = "indicator"){
+  
+  path <- ifelse(indicator %in% c("wildfire","WildFire", "Fire","fire","wild fire","WF"),
+               "./BRACE_Wildfire_786_CT_PL_CO_RE_CA.csv",
+               ifelse(indicator %in% c("sea level rise","SLR", "sea level","Sea Level Rise", "Sea Level", "sealevel"),
+                      "./BRACE_SLR_784_CT_PL_CO_RE_CA_11-1-2016.csv",
+                      ifelse(indicator %in% c("PM25","Particulate Matter", "particulate matter","PM2.5", "pm", "PM"),
+                             "./BRACE_PM25levels_776_CT_PL_CO_RE_CA.csv",
+                             ifelse(indicator %in% c("Ozone","ozone", "o3","O3"),
+                                    "./BRACE_Ozone_801_CT_PL_CO_RE_CA.csv","no path"
+                                    ))))
+  
+  data <- readCHVI(path)
+  
+# tracts
+tractData <- data %>% 
+  select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
+  filter(geotype == "CT")  %>% 
+  spread(key = race_eth_name, value = estimate) %>% 
+  mutate(ct10= as.character(paste0("0",geotypevalue))) 
 
+tracts %>% left_join(tractData) %>% st_write(dsn = paste0("../shapes/",indicator,"_RaceTracts.shp"), delete_layer=TRUE)
 
+# Counties
+countyData <- data %>% 
+  select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
+  filter(geotype == "CO")  %>% 
+  spread(key = race_eth_name, value = estimate) %>% 
+  mutate(COUNTYFI_1= as.character(paste0("0",geotypevalue))) 
 
+counties %>% left_join(countyData) %>% st_write(dsn = paste0("../shapes/",indicator,"_RaceCounties.shp"),delete_layer=TRUE)
+
+}
 
 #####################################
+GISbyRace(indicator = "wildfire")
+GISbyRace(indicator = "sea level rise")
+GISbyRace(indicator = "pm")
+GISbyRace(indicator = "ozone")
 
 
-counties <- st_read("../shapes/Counties2010.shp")
-tracts <- st_read("../shapes/census_tracts2010.shp")
-
-
-
-unique(wildfire$ind_definition)
-unique(wildfire$race_eth_name)
-length(unique(wildfire$geotypevalue))
-
+wildfire <- readCHVI("./BRACE_Wildfire_786_CT_PL_CO_RE_CA.csv")
+seaLevel <- readCHVI("./BRACE_SLR_784_CT_PL_CO_RE_CA_11-1-2016.csv")
+ozone <- readCHVI("./BRACE_Ozone_801_CT_PL_CO_RE_CA.csv")
 
 # WF tract by race
 WFtract <- wildfire %>% 
   select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
   filter(geotype == "CT")  %>% 
   spread(key = race_eth_name, value = estimate) %>% 
-  mutate(ct10= as.character(paste0("0",geotypevalue))) 
-  
-tracts %>% left_join(WFtract) %>% st_write(dsn = "../shapes/WF_RaceTracts.shp")
+  mutate(ct10= as.character(paste0("0",geotypevalue)),
+         min = apply(.[,c("AfricanAm","AIAN","Asian","Latino","Multiple", "NHOPI","Other", "White")],FUN = min, MARGIN = 1),
+         max = apply(.[,c("AfricanAm","AIAN","Asian","Latino","Multiple", "NHOPI","Other", "White")],FUN = max, MARGIN = 1),
+         diff = (max-min))
+
+WFtractsMap <- tracts %>% left_join(WFtract) %>% st_transform(crs = 4326)
+pal <- colorNumeric(
+  palette = "Reds",
+  domain = WFtractsMap$diff)
 
 
-# WF County by race
+WFtractsMap %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(color = "#444444", weight = 1, fillOpacity = 0.6,
+              fillColor = ~pal(diff),
+              popup = paste("In this tract (in ",WFtractsMap$county_name," County), ",
+                            round(WFtractsMap$Total, 2),"% of people live in high Wildfire risk areas. This includes ",
+                            round(WFtractsMap$White, 2),"% of the tract's White population, ",
+                            round(WFtractsMap$AfricanAm, 2),"% of the tract's African American population, ",
+                            round(WFtractsMap$Asian, 2),"% of the tract's Asian population, and ",
+                            round(WFtractsMap$Latino, 2),"% of the tract's Latino population."
+                            )) %>%
+  addLegend("bottomright", pal = pal, values = ~diff,
+            title = "Difference between most and least at risk",
+            labFormat = labelFormat(suffix = " percentage points"),
+            opacity = 1
+  )
+
+
 WFcounty <- wildfire %>% 
   select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
   filter(geotype == "CO")  %>% 
   spread(key = race_eth_name, value = estimate) %>% 
   mutate(COUNTYFI_1= as.character(paste0("0",geotypevalue)))  
 
-counties %>% left_join(WFcounty) %>% st_write(dsn = "../shapes/WF_RaceCounties.shp")
 
-# O3 tract by race
-O3tract <- ozone %>% 
-  select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
-  filter(geotype == "CT")  %>% 
-  spread(key = race_eth_name, value = estimate) %>% 
-  mutate(ct10= as.character(paste0("0",geotypevalue))) 
-
-tracts %>% left_join(O3tract) %>% st_write(dsn = "../shapes/O3_RaceTracts.shp")
+WFcountyMap <- counties %>% left_join(WFcounty) %>% st_transform(crs = 4326)
+pal <- colorNumeric(
+  palette = "Reds",
+  domain = WFcountyMap$Total)
 
 
-# O3 County by race
+
+WFcountyMap %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(color = "#444444", weight = 1, fillOpacity = 0.6,
+              fillColor = ~pal(Total),
+              popup = paste0("In ",WFcountyMap$county_name," County, ",
+                            round(WFcountyMap$Total, 2),"% of people live in high Wildfire risk areas. This includes ",
+                            round(WFcountyMap$White, 2),"% of the county's White population, ",
+                            round(WFcountyMap$AfricanAm, 2),"% of the county's African American population, ",
+                            round(WFcountyMap$Asian, 2),"% of the county's Asian population, and ",
+                            round(WFcountyMap$Latino, 2),"% of the county's Latino population.")) %>%
+  addLegend("bottomright", pal = pal, values = ~Total,
+            title = "Percent of the County Living in High WIldfire Risk",
+            labFormat = labelFormat(suffix = "%"),
+            opacity = 1)
+
+
+
+
+##################
+##### Ozone
+#################
+
+
+
 O3county <- ozone %>% 
   select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
   filter(geotype == "CO")  %>% 
   spread(key = race_eth_name, value = estimate) %>% 
   mutate(COUNTYFI_1= as.character(paste0("0",geotypevalue)))  
 
-counties %>% left_join(O3county) %>% st_write(dsn = "../shapes/O3_RaceCounties.shp")
 
-
-# PM tract by race
-PMtract <- pm25 %>% 
-  select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
-  filter(geotype == "CT")  %>% 
-  spread(key = race_eth_name, value = estimate) %>% 
-  mutate(ct10= as.character(paste0("0",geotypevalue))) 
-
-tracts %>% left_join(PMtract) %>% st_write(dsn = "../shapes/PM_RaceTracts.shp")
-
-
-# PM County by race
-PMcounty <- pm25 %>% 
-  select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
-  filter(geotype == "CO")  %>% 
-  spread(key = race_eth_name, value = estimate) %>% 
-  mutate(COUNTYFI_1= as.character(paste0("0",geotypevalue)))  
-
-counties %>% left_join(PMcounty) %>% st_write(dsn = "../shapes/PM_RaceCounties.shp")
+O3countyMap <- counties %>% left_join(O3county) %>% st_transform(crs = 4326)
+pal <- colorNumeric(
+  palette = "Reds",
+  domain = O3countyMap$Total)
 
 
 
-# SLR tract by race
-SLRtract <- seaLevel %>% 
-  select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
-  filter(geotype == "CT")  %>% 
-  spread(key = race_eth_name, value = estimate) %>% 
-  mutate(ct10= as.character(paste0("0",geotypevalue))) 
+O3countyMap %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(color = "#444444", weight = 1, fillOpacity = 0.6,
+              fillColor = ~pal(Total),
+              popup = paste0("In ",O3countyMap$county_name," County, the average ozone exceedance is about ",
+                             round(O3countyMap$Total, 3),"ppm. For the White population it is about ",
+                             round(O3countyMap$White, 3),"ppm, for the Black population it is about  ",
+                             round(O3countyMap$AfricanAm, 3),"ppm, for the Asian population it is about ",
+                             round(O3countyMap$Asian, 3),"ppm, and for the Latino population it is about ",
+                             round(O3countyMap$Latino, 3),"ppm.")) %>%
+  addLegend("bottomright", pal = pal, values = ~Total,
+            title = "Ozone exceedances",
+            labFormat = labelFormat(suffix = "ppm"),
+            opacity = 1)
 
-tracts %>% left_join(SLRtract) %>% st_write(dsn = "../shapes/SLR_RaceTracts.shp")
+
+##################
+##### Seal Level
+#################
 
 
-# SLR County by race
+
 SLRcounty <- seaLevel %>% 
   select(ind_definition, county_name,geotypevalue,geotype,race_eth_name, estimate) %>%
   filter(geotype == "CO")  %>% 
   spread(key = race_eth_name, value = estimate) %>% 
+  filter(Total > 0) %>%
   mutate(COUNTYFI_1= as.character(paste0("0",geotypevalue)))  
 
-counties %>% left_join(SLRcounty) %>% st_write(dsn = "../shapes/SLR_RaceCounties.shp")
+
+SLRcountyMap <- counties %>% left_join(SLRcounty) %>% st_transform(crs = 4326)
+pal <- colorNumeric(
+  palette = "Blues",
+  domain = SLRcountyMap$Total)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-######################################
-# simple features learning
-######################################
-world %>% 
-  plot()
-
-vector_filepath <- system.file("shapes/world.gpkg", package="spData")
-vector_filepath
-world <- st_read(vector_filepath)
-sf::st_drivers()
-world
-class(world)
-
-world %>% 
-  ggplot(aes(x=continent, y=area_km2, fill=region_un)) + geom_bar(stat="identity", position="stack") 
-
-world %>% 
-  left_join(worldbank_df, by = "iso_a2") %>%
-  select(name_long, pop, pop_growth, area_km2) %>%
-  arrange(area_km2) %>% 
-  mutate(pop_density = pop/area_km2) %>%
-  rename(population = pop)
-
-world_cont = world %>% 
-  group_by(continent) %>% 
-  summarize(pop_sum = sum(pop, na.rm = TRUE))
+SLRcountyMap %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(color = "#444444", weight = 1, fillOpacity = 0.6,
+              fillColor = ~pal(Total),
+              popup = paste0("In ",SLRcountyMap$county_name," County, ",
+                             round(SLRcountyMap$Total, 2),"% of people live in high sea level rise risk areas. This includes ",
+                             round(SLRcountyMap$White, 2),"% of the county's White population, ",
+                             round(SLRcountyMap$AfricanAm, 2),"% of the county's African American population, ",
+                             round(SLRcountyMap$Asian, 2),"% of the county's Asian population, and ",
+                             round(SLRcountyMap$Latino, 2),"% of the county's Latino population.")) %>%
+  addLegend("bottomright", pal = pal, values = ~Total,
+            title = "Percent of the County Living in High Sea Level Inundation Risk Areas",
+            labFormat = labelFormat(suffix = "%"),
+            opacity = 1)

@@ -6,9 +6,14 @@ library(tidyverse)
 ######### Function ##########
 #############################
 
+# this function reads in the excell file from our CCHEP/CalBRACE site based on the indicator name you provide 
+# the function also take the geography you would like, mostly county "CO" or census tract "CT" 
+
 simplifyCHVI <- function(indicator = "indicator", geography = "CT"){
   
    # find url associated with this indicator
+   # more variables can be added can be added here
+   # this is where it translates the indicator name that was input into the url for the coresponding file on our website
    fileName <- ifelse(indicator %in% c("wildfire","WildFire", "Fire","fire","wild fire","WF"),
                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Wildfire_786_CT_PL_CO_RE_CA.xlsx",
                  ifelse(indicator %in% c("sea level rise","SLR", "sea level","Sea Level Rise", "Sea Level", "sealevel"),
@@ -55,15 +60,20 @@ simplifyCHVI <- function(indicator = "indicator", geography = "CT"){
    
    temp$reportyear <- as.character(as.numeric(temp$reportyear))
    
-    temp <- temp %>% 
-      filter(geotype == geography, race_eth_name == "Total")  %>% 
-      select(ind_definition, county_name, geotypevalue,geotype, estimate, region_name, LL_95CI, UL_95CI) %>%
+   
+   # we will need to change these settings for some indicators that have different use of the strata or report years (heat)
+   temp <- temp %>% 
+      filter(geotype == geography, race_eth_name == "Total")  %>% # here's where we can filter the data further
+      select(ind_definition, county_name, geotypevalue,geotype, estimate, region_name, LL_95CI, UL_95CI) %>% # the file is parsed down to these columns only
       mutate(ct10= as.character(paste0("0",geotypevalue))) %>%
-      write.csv(paste0("~/CHVI_",indicator,"_",geography,".csv"),row.names=F)
+      write.csv(paste0("~/CHVI_",indicator,"_",geography,".csv"),row.names=F) # it writes a file to your home directory with the name including the indicator and the geography
     
    return(temp)
 }
 
+
+
+# here we can loop the indicators and geographies to create all the tables we'll send to connect to shapefiles
 indicators <- c("wildfire","ozone","pm","SLR")
 geographies <- c("CO","CT")
 

@@ -23,7 +23,7 @@ ui <- navbarPage(
       column(3,
              selectInput("cnty",
                          "County",
-                         c(unique(as.character(CHVIdata$county)),"All"
+                         c(sort(unique(as.character(CHVIdata$county))),"All"
                          ))
              ),
       column(3,
@@ -38,17 +38,17 @@ ui <- navbarPage(
              downloadButton(outputId = "downloadData", label = "Download"))
       
     ),
+    
     wellPanel(plotOutput("plot")),
     fluidRow(column(6,
                     wellPanel(DT::dataTableOutput("table"))
                     ), 
              column(6,
-                    leafletOutput("map")
+                    wellPanel(leafletOutput("map"))
                     ))
   ),
   tabPanel(title = "Explore", textOutput("summary")
           ),
-
   navbarMenu(
     "Documentation",
     tabPanel("About",
@@ -65,9 +65,7 @@ ui <- navbarPage(
                  )
                )
              )),
-    tabPanel(tags$a(
-      "CDPH CalBrace", "https://bit.ly/calbrace"
-    )),
+    tabPanel(title = "Download your data"),
     tabPanel(title = "Summary", textOutput("path"))
   )
   
@@ -105,7 +103,7 @@ server <- function(input, output, session) {
           Mean = est) %>%
         mutate(selected = ifelse(County == input$cnty, "yes", "no"))
     }) 
-})
+ })
   
   output$chooseStrata <- renderUI({
     selectInput("strt",
@@ -227,7 +225,7 @@ server <- function(input, output, session) {
   })
   
   output$summary <-
-    renderText(paste0("You have selected ", input$cnty, " County"))
+    renderText(paste0("This section is still under development. You have selected ", input$cnty, " County"))
   
   
   output$downloadData <- downloadHandler(

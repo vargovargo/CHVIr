@@ -37,9 +37,9 @@ ui <- navbarPage(
              uiOutput("chooseStrata")
            ),
       column(3,
-             downloadButton(outputId = "downloadData", label = "Download Selected Data"),
-             p(uiOutput("downloadCHPR")),
-             textOutput("test"))
+             downloadLink(outputId = "downloadData", label = "Download Selected Data"),
+             p(uiOutput("downloadCHPR"))
+             )
     
   ),
     wellPanel(plotOutput("plot")),
@@ -295,18 +295,27 @@ server <- function(input, output, session) {
     
   )
   
-  
-  
-  
-  
-  
 ##### Download the County Health Profile Report  ######  
   
-  output$test <- renderText(links$CHPR.Link[links$County == input$cnty])
   
   output$downloadCHPR <- renderUI({ 
-    HTML(paste0("<a href =", links$CHPR.Link[links$County == input$cnty],"> County Health Profile Report </a>"))
+    HTML(paste0("<a href =", links$CHPR.Link[links$County %in% c(input$cnty, paste0(input$cnty," "))],">Download County Health Profile</a>"))
   })
+  
+  
+  # output$downloadCHPR2 <- downloadHandler(
+  #   filename = function () {
+  #     paste0(input$cnty,"CountyHealthProfileReport.pdf")
+  #   },
+  #   
+  #   content = function(file) {
+  #     file.copy(links$CHPR.Link[links$County %in% c(input$cnty, paste0(input$cnty," "))], file)
+  #   }
+  #   
+  # )
+  
+  
+  
   
   
   ##### make triple plot #####

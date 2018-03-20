@@ -9,21 +9,23 @@ library(sf)
 
 links <-read.csv(url("https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHPRlinks.csv"), header=T)
 CHVIdata <- read.csv(url("https://raw.githubusercontent.com/vargovargo/CHVIr/master/chviCountyTidy.csv"), header=T)
-
 counties <- st_read("counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
 
-# Define UI for application that draws a histogram
+# CHVIdata <- read.csv("~/GitHub/CHVIr/chviCountyTidy.csv", header=T, stringsAsFactors = F)
+# counties <- st_read("~/GitHub/CHVIr/CHIViz/counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
+
+##### Define UI for application that draws a histogram #####
 ui <- navbarPage(
   theme = shinytheme("flatly"),
   title = "CHVIz",
   tabPanel(
-    "Select your data",
+    "Select an indicator",
     # Create a new Row in the UI for selectInputs
     fluidRow(
       column(3,
              selectInput("cnty",
                          "County",
-                         c(sort(unique(as.character(CHVIdata$county))),"All"
+                         c(sort(unique(as.character(CHVIdata$county)))
                          ))
              ),
       column(3,
@@ -35,10 +37,11 @@ ui <- navbarPage(
              uiOutput("chooseStrata")
            ),
       column(3,
-             downloadButton(outputId = "downloadData", label = "Download"))
-      
-    ),
+             downloadButton(outputId = "downloadData", label = "Download Selected Data"),
+             p(uiOutput("downloadCHPR")),
+             textOutput("test"))
     
+  ),
     wellPanel(plotOutput("plot")),
     fluidRow(column(6,
                     wellPanel(DT::dataTableOutput("table"))
@@ -47,10 +50,44 @@ ui <- navbarPage(
                     wellPanel(leafletOutput("map"))
                     ))
   ),
-  tabPanel(title = "Explore", textOutput("summary")
+  tabPanel(title = "Cummulative Vulnerability", 
+           fluidRow(
+             column(3,
+                    selectInput("exposure",
+                                "Exposure Indicator",
+                                c("Projected number of extreme heat days",
+                                  "Three-year ozone concentration exceedance",
+                                  "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                  "Population living in sea level rise inundation areas",
+                                  "Percent of population currently living in very high wildfire risk areas"
+                                  ))
+                                ),
+             column(3,
+                    selectInput("sensitivity",
+                                "Sensitivity Indicator",
+                                c("Percent of population aged 65 years or older",
+                                  "Percent of population age less than 5 years",
+                                  "Number of Violent Crimes per 1,000 Population",
+                                  "Percent of population with a disability",
+                                  "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                                  "Percent of adults aged 18 - 64 without health insurance",
+                                  "Percent of households with no one aged > 14 years speaking English",
+                                  "Percent of population employed and aged > 16 working outdoors",
+                                  "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                                  "Percent of households with no vehicle ownership"
+                                ))),
+             column(3,
+                    selectInput("capacity",
+                                "Adaptive Capacity Indicator",
+                                c("Percent of households with air conditioning",
+                                  "Percent without tree canopy coverage",
+                                  "percent impervious surface cover"
+                                  )))
+             ),
+           wellPanel(plotOutput("triplePlot"))
           ),
   navbarMenu(
-    "Documentation",
+    "About",
     tabPanel("About",
              fluidRow(
                column(
@@ -64,16 +101,15 @@ ui <- navbarPage(
                    alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
                  )
                )
-             )),
-    tabPanel(title = "Download your data"),
-    tabPanel(title = "Summary", textOutput("path"))
+             ))
   )
   
 )
 
-############ SERVER
+##### SERVER #####
 server <- function(input, output, session) {
-  path <- renderText(links$CHPR.Link[links$County == input$cnty])
+
+##### create reactive table for single indicator #####
   
   data58 <- reactive({
 
@@ -88,7 +124,8 @@ server <- function(input, output, session) {
         Region = climReg,
         Definition = def,
         Mean = est) %>%
-      mutate(selected = ifelse(County == input$cnty, "yes", "no"))
+      mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
+             selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "yes","no"))
     }
     
     else({
@@ -101,9 +138,13 @@ server <- function(input, output, session) {
           Region = climReg,
           Definition = def,
           Mean = est) %>%
-        mutate(selected = ifelse(County == input$cnty, "yes", "no"))
+          mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
+                 selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "yes","no"))
     }) 
  })
+  
+  
+##### generate strata selection dropdown #####
   
   output$chooseStrata <- renderUI({
     selectInput("strt",
@@ -122,7 +163,8 @@ server <- function(input, output, session) {
   })
   
 
-  # Filter data based on selections
+##### generate table of the data #####
+  
   output$table <- DT::renderDataTable({DT::datatable(
     data58()  %>%
      select(
@@ -138,6 +180,9 @@ server <- function(input, output, session) {
       )) %>% DT::formatRound(c(5:7), 2)
   })
   
+
+ 
+##### generate map #####
   
   output$map <- renderLeaflet({
     if (input$ind != "All") {
@@ -162,7 +207,7 @@ server <- function(input, output, session) {
           popup = paste0("This is ",mapTemp$County," County. The ",mapTemp$Definition," in this county is ",
                          round(mapTemp$Mean[mapTemp$County == mapTemp$County]),". The state average is ", round(mean(mapTemp$Mean, na.rm=T),2))
         ) %>%
-        addLegend("bottomright",
+        addLegend("topright",
           pal = pal,
           values = ~ Mean,
           opacity = 1,
@@ -174,6 +219,8 @@ server <- function(input, output, session) {
     
   })
   
+##### generate plot #####
+  
   output$plot <- renderPlot({
     
     if(input$ind == "All") {
@@ -183,8 +230,8 @@ server <- function(input, output, session) {
           aes(
             x = reorder(County, Mean),
             y = Mean,
-            fill = selected,
-            alpha = selected
+            fill = selRegion,
+            alpha = selCounty
           ),
           stat = "identity",
           position = "dodge"
@@ -195,9 +242,8 @@ server <- function(input, output, session) {
           color = "black",
           alpha = 0.5
         ) +
-        scale_alpha_discrete(range = c(0.3, 0.8)) +
-        theme_fivethirtyeight() +
-        scale_color_fivethirtyeight()+ theme_update(axis.text.x = element_text(angle = 60, hjust = 1))
+        scale_alpha_discrete(range = c(0.2, 0.9)) +
+        theme_update(axis.text.x = element_text(angle = 60, hjust = 1))
     } 
     else ({
     data58() %>%
@@ -206,8 +252,8 @@ server <- function(input, output, session) {
         aes(
           x = reorder(County, Mean),
           y = Mean,
-          fill = selected,
-          alpha = selected
+          fill = selRegion,
+          alpha = selCounty
         ),
         stat = "identity",
         position = "dodge"
@@ -219,31 +265,22 @@ server <- function(input, output, session) {
         alpha = 0.5
       ) +
       scale_alpha_discrete(range = c(0.3, 0.8)) +
-      theme_fivethirtyeight() +
-      scale_color_fivethirtyeight()+ theme_update(axis.text.x = element_text(angle = 60, hjust = 1))
+      theme_update(axis.text.x = element_text(angle = 60, hjust = 1))
     })
   })
   
   output$summary <-
     renderText(paste0("This section is still under development. You have selected ", input$cnty, " County"))
   
-  
+##### Download the csv of the selected data  ######  
   output$downloadData <- downloadHandler(
     filename = function () {
-      paste0("selectedCHVIdata_", input$cnty, ".csv")
+      paste0("selectedCHVIdata.csv")
     },
     
     content = function(file) {
-      write.csv({data1()  %>%
-          spread(key = metric, value = value) %>%
-          rename(
-            County = county,
-            Region = climReg,
-            Definition = def,
-            Denominator = denmntr,
-            Mean = est,
-            Numerator = numratr
-          ) %>%
+      write.csv({
+        data58() %>%
           select(
             County,
             Region,
@@ -252,12 +289,69 @@ server <- function(input, output, session) {
             Mean,
             LL95,
             UL95
-            # Numerator,
-            # Denominator
-          )}, file, row.names = F)
+          )
+        }, file, row.names = F)
     }
     
   )
+  
+  
+  
+  
+  
+  
+##### Download the County Health Profile Report  ######  
+  
+  output$test <- renderText(links$CHPR.Link[links$County == input$cnty])
+  
+  output$downloadCHPR <- renderUI({ 
+    HTML(paste0("<a href =", links$CHPR.Link[links$County == input$cnty],"> County Health Profile Report </a>"))
+  })
+  
+  
+  ##### make triple plot #####
+  
+  output$triplePlot <- renderPlot({
+  
+  
+    tri <- {CHVIdata %>% 
+    filter(def  == input$exposure & strata %in% c("2085", 2085,"none") & metric =="est") %>%
+    select(county, climReg, COUNTYFI_1, def, value) %>% 
+    spread(key = def, value = value)
+           } %>% left_join({
+    
+    CHVIdata %>% 
+      filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric =="est") %>%
+      select(county, climReg, COUNTYFI_1, def, value) %>% 
+      spread(key = def, value = value)
+    
+    
+  }) %>% left_join({
+    
+    CHVIdata %>% 
+      filter(def  == input$capacity & strata %in% c("population-weighted", "none") & metric =="est") %>%
+      select(county, climReg, COUNTYFI_1, def, value) %>% 
+      spread(key = def, value = value)
+    
+  }) 
+    
+    tri %>%
+  
+    ggplot() +
+    geom_point(aes_q(x = as.name(names(tri)[4]), 
+                     y = as.name(names(tri)[5]),
+                     size = as.name(names(tri)[6]),
+                     color =as.name(names(tri)[6]))) + 
+      scale_color_continuous(low = "red",high = "green") + 
+      scale_size_continuous(range = c(13,1)) +
+      guides(alpha = FALSE, color = FALSE)  +
+      theme(legend.position="bottom")
+
+  })
+  
+  
+  
+  
 }
 
 # Run the application

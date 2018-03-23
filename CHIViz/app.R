@@ -1,3 +1,4 @@
+#devtools::install_github('hadley/ggplot2')
 library(shiny)
 library(tidyverse)
 library(markdown)
@@ -5,14 +6,13 @@ library(leaflet)
 library(shinythemes)
 library(ggthemes)
 library(sf)
+# library(plotly)
+# library(ggplot2)
 
 
-links <-read.csv(url("https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHPRlinks.csv"), header=T)
-CHVIdata <- read.csv(url("https://raw.githubusercontent.com/vargovargo/CHVIr/master/chviCountyTidy.csv"), header=T)
+links <-read.csv("CHPRlinks.csv", header=T)
+CHVIdata <- read.csv("chviCountyTidy.csv", header=T)
 counties <- st_read("counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
-
-# CHVIdata <- read.csv("~/GitHub/CHVIr/chviCountyTidy.csv", header=T, stringsAsFactors = F)
-# counties <- st_read("~/GitHub/CHVIr/CHIViz/counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
 
 ##### Define UI for application that draws a histogram #####
 ui <- navbarPage(
@@ -24,7 +24,7 @@ ui <- navbarPage(
     fluidRow(
       column(3,
              selectInput("cnty",
-                         "County",
+                         "Highlight County",
                          c(sort(unique(as.character(CHVIdata$county)))
                          ))
              ),
@@ -75,14 +75,14 @@ ui <- navbarPage(
                                   "Percent of population employed and aged > 16 working outdoors",
                                   "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
                                   "Percent of households with no vehicle ownership"
-                                ))),
-             column(3,
-                    selectInput("capacity",
-                                "Adaptive Capacity Indicator",
-                                c("Percent of households with air conditioning",
-                                  "Percent without tree canopy coverage",
-                                  "percent impervious surface cover"
-                                  )))
+                                )))#,
+             # column(3,
+             #        selectInput("capacity",
+             #                    "Adaptive Capacity Indicator",
+             #                    c("Percent of households with air conditioning",
+             #                      "Percent without tree canopy coverage",
+             #                      "percent impervious surface cover"
+             #                      )))
              ),
            wellPanel(plotOutput("triplePlot"))
           ),
@@ -123,7 +123,9 @@ server <- function(input, output, session) {
         County = county,
         Region = climReg,
         Definition = def,
-        Mean = est) %>%
+        Mean = est, 
+        Numerator = numratr,
+        Denominator = denmntr) %>%
       mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
              selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "yes","no"))
     }
@@ -137,7 +139,9 @@ server <- function(input, output, session) {
           County = county,
           Region = climReg,
           Definition = def,
-          Mean = est) %>%
+          Mean = est, 
+          Numerator = numratr,
+          Denominator = denmntr) %>%
           mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
                  selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "yes","no"))
     }) 
@@ -174,10 +178,10 @@ server <- function(input, output, session) {
         strata,
         Mean,
         LL95,
-        UL95
-        # Numerator,
-        # Denominator
-      )) %>% DT::formatRound(c(5:7), 2)
+        UL95,
+        Numerator,
+        Denominator
+      )) %>% DT::formatRound(c(5:9), 1)
   })
   
 
@@ -325,37 +329,41 @@ server <- function(input, output, session) {
   
     tri <- {CHVIdata %>% 
     filter(def  == input$exposure & strata %in% c("2085", 2085,"none") & metric =="est") %>%
+    mutate(expTer = ntile(value, 3)) %>%
     select(county, climReg, COUNTYFI_1, def, value) %>% 
     spread(key = def, value = value)
            } %>% left_join({
     
     CHVIdata %>% 
       filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric =="est") %>%
+      mutate(sensTer = ntile(value, 3)) %>%
       select(county, climReg, COUNTYFI_1, def, value) %>% 
       spread(key = def, value = value)
     
     
-  }) %>% left_join({
+  # }) %>% left_join({
+  #   
+  #   CHVIdata %>% 
+  #     filter(def  == input$capacity & strata %in% c("population-weighted", "none") & metric =="est") %>%
+  #     select(county, climReg, COUNTYFI_1, def, value) %>% 
+  #     spread(key = def, value = value)
+  #   
+  })  %>%
+        mutate(vulnerability = factor(sensTER + expTer))
+      
+      tri %>% ggplot(aes_q(x = as.name(names(tri)[5]), 
+                           y = as.name(names(tri)[7]),
+                           size = as.name(names(tri)[10]), 
+                           color = as.name(names(tri)[10])
+      )) +
+        geom_point(alpha = 0.9) +
+        guides(alpha = FALSE, color = FALSE, size = FALSE) + 
+        scale_color_brewer(palette = "Spectral", direction = -1) +
+        scale_size_discrete(range = c(3,15)) + 
+        geom_text(aes_q(x = as.name(names(tri)[5]), 
+                        y = as.name(names(tri)[7]), 
+                        label = as.name(names(tri)[1])), size= 2, color="black")
     
-    CHVIdata %>% 
-      filter(def  == input$capacity & strata %in% c("population-weighted", "none") & metric =="est") %>%
-      select(county, climReg, COUNTYFI_1, def, value) %>% 
-      spread(key = def, value = value)
-    
-  }) 
-    
-    tri %>%
-  
-    ggplot() +
-    geom_point(aes_q(x = as.name(names(tri)[4]), 
-                     y = as.name(names(tri)[5]),
-                     size = as.name(names(tri)[6]),
-                     color =as.name(names(tri)[6]))) + 
-      scale_color_continuous(low = "red",high = "green") + 
-      scale_size_continuous(range = c(13,1)) +
-      guides(alpha = FALSE, color = FALSE)  +
-      theme(legend.position="bottom")
-
   })
   
   

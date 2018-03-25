@@ -30,8 +30,25 @@ ui <- navbarPage(
              ),
       column(3,
              selectInput("ind",
-                         "Indicator",
-                         c(unique(as.character(CHVIdata$def)),"All"
+                         "Select an Indicator",
+                         c("Projected number of extreme heat days",
+                           "Three-year ozone concentration exceedance",
+                           "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                           "Population living in sea level rise inundation areas",
+                           "Percent of population currently living in very high wildfire risk areas",
+                           "Percent of population aged 65 years or older",
+                           "Percent of population age less than 5 years",
+                           "Number of Violent Crimes per 1,000 Population",
+                           "Percent of population with a disability",
+                           "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                           "Percent of adults aged 18 - 64 without health insurance",
+                           "Percent of households with no one aged > 14 years speaking English",
+                           "Percent of population employed and aged > 16 working outdoors",
+                           "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                           "Percent of households with no vehicle ownership",
+                           "Percent of households with air conditioning",
+                           "Percent without tree canopy coverage",
+                           "Percent impervious surface cover"
                          ))),
       column(3,
              uiOutput("chooseStrata")
@@ -81,10 +98,16 @@ ui <- navbarPage(
              #                    "Adaptive Capacity Indicator",
              #                    c("Percent of households with air conditioning",
              #                      "Percent without tree canopy coverage",
-             #                      "percent impervious surface cover"
+             #                      "Percent impervious surface cover"
              #                      )))
              ),
-           wellPanel(plotOutput("triplePlot"))
+           fluidRow(
+             column(8,wellPanel(plotOutput("triplePlot"))
+             ), 
+             column(4,
+                    includeMarkdown("vulnerability.md"))
+                         
+           )
           ),
   navbarMenu(
     "About",
@@ -269,7 +292,8 @@ server <- function(input, output, session) {
         alpha = 0.5
       ) +
       scale_alpha_discrete(range = c(0.3, 0.8)) +
-      theme_update(axis.text.x = element_text(angle = 60, hjust = 1))
+      theme_update(axis.text.x = element_text(angle = 60, hjust = 1))+ 
+        ggtitle(paste0(input$cnty," county and Region (blue) compared to others in the state (red) - with the state average (black line) for the selcted indicator - ",input$ind))
     })
   })
   
@@ -330,43 +354,42 @@ server <- function(input, output, session) {
     tri <- {CHVIdata %>% 
     filter(def  == input$exposure & strata %in% c("2085", 2085,"none") & metric =="est") %>%
     mutate(expTer = ntile(value, 3)) %>%
-    select(county, climReg, COUNTYFI_1, def, value) %>% 
+    select(county, climReg, COUNTYFI_1, def, value, expTer) %>% 
     spread(key = def, value = value)
            } %>% left_join({
     
     CHVIdata %>% 
       filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric =="est") %>%
       mutate(sensTer = ntile(value, 3)) %>%
-      select(county, climReg, COUNTYFI_1, def, value) %>% 
+      select(county, climReg, COUNTYFI_1, def, value, sensTer) %>% 
       spread(key = def, value = value)
-    
-    
-  # }) %>% left_join({
+    }) %>%  
+      mutate(vulnerability = factor(sensTer + expTer)) 
+
+  # left_join({
   #   
   #   CHVIdata %>% 
   #     filter(def  == input$capacity & strata %in% c("population-weighted", "none") & metric =="est") %>%
   #     select(county, climReg, COUNTYFI_1, def, value) %>% 
   #     spread(key = def, value = value)
   #   
-  })  %>%
-        mutate(vulnerability = factor(sensTER + expTer))
+  # }) %>% 
       
       tri %>% ggplot(aes_q(x = as.name(names(tri)[5]), 
                            y = as.name(names(tri)[7]),
-                           size = as.name(names(tri)[10]), 
-                           color = as.name(names(tri)[10])
-      )) +
+                           size = as.name(names(tri)[8]), 
+                           color = as.name(names(tri)[8])
+                     )) +
         geom_point(alpha = 0.9) +
         guides(alpha = FALSE, color = FALSE, size = FALSE) + 
         scale_color_brewer(palette = "Spectral", direction = -1) +
         scale_size_discrete(range = c(3,15)) + 
         geom_text(aes_q(x = as.name(names(tri)[5]), 
                         y = as.name(names(tri)[7]), 
-                        label = as.name(names(tri)[1])), size= 2, color="black")
+                        label = as.name(names(tri)[1])), size= 3, color="black") + 
+        ggtitle("This plot displays the vulnerability to two factors. Counties in the top right corner (red) are in the top third of all counties for each.")
     
   })
-  
-  
   
   
 }

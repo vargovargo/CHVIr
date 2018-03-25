@@ -5,9 +5,8 @@ account: vargo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 296846
-bundleId: 1279298
+bundleId: 1285045
 url: https://vargo.shinyapps.io/CHIViz/
-when: 1521581611.2607
+when: 1521839184.39481
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: bootstrap.css

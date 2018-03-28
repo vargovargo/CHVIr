@@ -19,8 +19,31 @@ ui <- navbarPage(
   theme = shinytheme("flatly"),
   title = "CHVIz",
   tabPanel(
-    "Select an indicator",
+    "Single County",
     # Create a new Row in the UI for selectInputs
+
+    
+#####  Select an County  #####       
+    
+    fluidRow(
+      column(3,
+             selectInput("cnty1",
+                         "Select a County",
+                         c(sort(unique(as.character(CHVIdata$county)))
+                         ))
+      ),
+      column(3,
+             p(uiOutput("downloadCHPR1"))
+      ),
+    wellPanel(plotOutput("plotCounty")))),
+    
+    
+#####  Select an Indicator Tool  #####    
+   
+
+tabPanel(
+  "Single Indicator",
+ 
     fluidRow(
       column(3,
              selectInput("cnty",
@@ -66,7 +89,7 @@ ui <- navbarPage(
              column(6,
                     wellPanel(leafletOutput("map"))
                     ))
-  ),
+),
   tabPanel(title = "Cummulative Vulnerability", 
            fluidRow(
              column(3,
@@ -109,6 +132,10 @@ ui <- navbarPage(
                          
            )
           ),
+
+
+#####  About Page  ####
+
   navbarMenu(
     "About",
     tabPanel("About",
@@ -126,12 +153,18 @@ ui <- navbarPage(
                )
              ))
   )
-  
+#####  Finish About  #####
+
 )
 
 ##### SERVER #####
 server <- function(input, output, session) {
 
+averages <- CHVIdata %>%
+    filter(metric =="est") %>%
+    group_by(def, ind, strata) %>%
+    summarise(stateAverage = mean(value, na.rm=T))
+  
 ##### create reactive table for single indicator #####
   
   data58 <- reactive({
@@ -245,6 +278,32 @@ server <- function(input, output, session) {
     }
     
   })
+  
+  
+##### generate County Plot #####
+  
+  output$plotCounty <- renderPlot({
+    
+    CHVIdata %>% filter(county == input$cnty1 & metric == "est") %>% 
+    left_join(averages) %>% 
+    mutate(label = paste0(def," - ", strata),
+           ratio = value/stateAverage,
+           category = ifelse(ratio < 0.9, "below CA average",
+                             ifelse(ratio > 1.1, "above CA average","around CA average"))) %>%
+    ggplot() + 
+    geom_bar(aes(x=reorder(label, ratio), y=ratio, fill=category), stat="identity") +
+    coord_flip() +
+    geom_hline(yintercept = 1, linetype="dashed") + 
+    xlab("Indicator and Strata") +
+    ylab("Ratio to State Average") +
+    scale_fill_discrete(name="")
+  
+  
+  })
+  
+  
+  
+  
   
 ##### generate plot #####
   

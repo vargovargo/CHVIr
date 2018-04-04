@@ -3,8 +3,8 @@ rm(list = ls())
 library(tidyverse)
 
 workingPath <- "~/CHVI_copy/data/" # work local
-workingPath <-
-  "//phdeorlcsrvip01/Crossbranch/CDC_BRACE/Data/CHVI-CHPR Data/data/" # work local
+# workingPath <-
+#   "//phdeorlcsrvip01/Crossbranch/CDC_BRACE/Data/CHVI-CHPR Data/data/" # work local
 
 ###  filenames ###
 wildfire <-
@@ -283,6 +283,7 @@ simplifyCHVI <- function(indicator = "indicator") {
 }
 
 
+
 # here we can loop the indicators and geographies to create all the tables we'll send to connect to shapefiles
 indicators <-
   c("wildfire",
@@ -298,7 +299,7 @@ for (indicator in indicators) {
   simplifyCHVI(indicator = indicator)
 }
 
-#simplifyCHVI("wildfire")
+simplifyCHVI("wildfire")
 
 
 #### run for air conditioning ##############################
@@ -2054,8 +2055,8 @@ library(tidyverse)
 library(sf)
 
 workingPath <- "~/CHVI_copy/data/" # work local
-workingPath <-
-  "//phdeorlcsrvip01/Crossbranch/CDC_BRACE/Data/CHVI-CHPR Data/data/" # work on network
+# workingPath <-
+#   "//phdeorlcsrvip01/Crossbranch/CDC_BRACE/Data/CHVI-CHPR Data/data/" # work on network
 setwd(paste0(workingPath, "tables/counties/"))
 
 

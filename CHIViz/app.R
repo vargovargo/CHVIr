@@ -6,6 +6,7 @@ library(leaflet)
 library(shinythemes)
 library(ggthemes)
 library(sf)
+library(DT)
 # library(plotly)
 # library(ggplot2)
 
@@ -15,11 +16,22 @@ CHVIdata <- read.csv("chviCountyTidy.csv", header=T)
 counties <- st_read("counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
 
 ##### Define UI for application that draws a histogram #####
-ui <- navbarPage(
-  theme = shinytheme("flatly"),
-  title = "CHVIz",
-  tabPanel(
-    "Single County",
+ui <-  fluidPage(
+    div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
+          titlePanel(
+            title="",
+            windowTitle="CHVIz"
+          )
+    ),
+  
+  navbarPage(position = "fixed-top", 
+             header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
+             theme = shinytheme("flatly"),
+             title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" #,
+                                   #img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHIViz/CCHEPbannerLong.gif", style = "position: relative; top: -3px; right: 0px;")
+                                   )),
+             
+             tabPanel("Single County",
     # Create a new Row in the UI for selectInputs
 
     
@@ -34,8 +46,13 @@ ui <- navbarPage(
       ),
       column(3,
              p(uiOutput("downloadCHPR1"))
-      ),
-    wellPanel(plotOutput("plotCounty")))),
+      )),
+    fluidRow(
+      column(9, wellPanel(plotOutput("plotCounty"))),
+      column(3, includeMarkdown("countyPlot.md"))),
+    wellPanel(DT::dataTableOutput("countyTable"))
+      
+             ),
     
     
 #####  Select an Indicator Tool  #####    
@@ -51,7 +68,7 @@ tabPanel(
                          c(sort(unique(as.character(CHVIdata$county)))
                          ))
              ),
-      column(3,
+      column(5,
              selectInput("ind",
                          "Select an Indicator",
                          c("Projected number of extreme heat days",
@@ -75,22 +92,20 @@ tabPanel(
                          ))),
       column(3,
              uiOutput("chooseStrata")
-           ),
-      column(3,
-             downloadLink(outputId = "downloadData", label = "Download Selected Data"),
-             p(uiOutput("downloadCHPR"))
-             )
+           )
+      
     
   ),
-    wellPanel(plotOutput("plot")),
-    fluidRow(column(6,
-                    wellPanel(DT::dataTableOutput("table"))
+  
+    fluidRow(column(8,
+                    wellPanel(plotOutput("plot"))
                     ), 
-             column(6,
+             column(4,
                     wellPanel(leafletOutput("map"))
-                    ))
+                    )),
+  wellPanel(DT::dataTableOutput("table"))
 ),
-  tabPanel(title = "Cummulative Vulnerability", 
+  tabPanel(title = "Vulnerability", 
            fluidRow(
              column(3,
                     selectInput("exposure",
@@ -125,19 +140,40 @@ tabPanel(
              #                      )))
              ),
            fluidRow(
-             column(8,wellPanel(plotOutput("triplePlot"))
+             column(9,wellPanel(plotOutput("triplePlot"))
              ), 
-             column(4,
+             column(3,
                     includeMarkdown("vulnerability.md"))
                          
            )
           ),
 
 
-#####  About Page  ####
+#####  Additional Page  ####
 
   navbarMenu(
-    "About",
+    "Additional Resources",
+    tabPanel("County Profile Report",
+             fluidRow(
+               column(4, 
+                      selectInput("cntyCHPR",
+                                  "Select Your County",
+                                  c(sort(unique(as.character(CHVIdata$county)))
+                                  ))
+                      ),
+               column(
+                 4,
+                 p(uiOutput("downloadCHPR"))
+               )
+             )),
+    
+    tabPanel("Download your Data",
+             fluidRow(
+               column(3,
+               downloadLink(outputId = "downloadData", label = "Download Selected Data")
+             )             
+             )),
+    
     tabPanel("About",
              fluidRow(
                column(
@@ -152,9 +188,13 @@ tabPanel(
                  )
                )
              ))
+    
+    
+    
   )
-#####  Finish About  #####
+#####  Finish Additional  #####
 
+)
 )
 
 ##### SERVER #####
@@ -169,8 +209,6 @@ averages <- CHVIdata %>%
   
   data58 <- reactive({
 
-    if (!is.null(input$strt))
-    {
       CHVIdata %>%
       mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
       filter(def == input$ind & strata == input$strt ) %>%
@@ -184,23 +222,7 @@ averages <- CHVIdata %>%
         Denominator = denmntr) %>%
       mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
              selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "yes","no"))
-    }
-    
-    else({
-      CHVIdata %>%
-        mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
-        filter(def == input$ind) %>%
-        spread(key = metric, value = value) %>%
-        rename(
-          County = county,
-          Region = climReg,
-          Definition = def,
-          Mean = est, 
-          Numerator = numratr,
-          Denominator = denmntr) %>%
-          mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
-                 selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "yes","no"))
-    }) 
+   
  })
   
   
@@ -210,20 +232,16 @@ averages <- CHVIdata %>%
     selectInput("strt",
                 "Strata",{
                   
-               if(unique(
+            unique(
                  as.character({CHVIdata %>% filter(def == input$ind)}$strata)
-               ) == "none")
-                 return()
-               else (unique(
-                 as.character({CHVIdata %>% filter(def == input$ind)}$strata)
-               ))
+                   )
                
                 }
             )
   })
   
 
-##### generate table of the data #####
+##### generate table of the data (tab 2) #####
   
   output$table <- DT::renderDataTable({DT::datatable(
     data58()  %>%
@@ -242,7 +260,7 @@ averages <- CHVIdata %>%
   
 
  
-##### generate map #####
+##### generate map (tab 2) #####
   
   output$map <- renderLeaflet({
     if (input$ind != "All") {
@@ -262,8 +280,12 @@ averages <- CHVIdata %>%
         addPolygons(
           color = "#444444",
           weight = 1,
+          smoothFactor = 0.1,
           fillOpacity = 0.6,
           fillColor = ~ pal(Mean),
+          highlightOptions = highlightOptions(color = "white", weight = 2,
+                                              bringToFront = TRUE),
+          label = ~ (mapTemp$County),
           popup = paste0("This is ",mapTemp$County," County. The ",mapTemp$Definition," in this county is ",
                          round(mapTemp$Mean[mapTemp$County == mapTemp$County]),". The state average is ", round(mean(mapTemp$Mean, na.rm=T),2))
         ) %>%
@@ -272,15 +294,16 @@ averages <- CHVIdata %>%
           values = ~ Mean,
           opacity = 1,
           labFormat = labelFormat(),
-          title = input$ind
-        )
+          title = input$ind 
+        ) %>%
+        clearControls()
       
     }
     
   })
   
   
-##### generate County Plot #####
+##### generate County (tab 1) Plot #####
   
   output$plotCounty <- renderPlot({
     
@@ -302,36 +325,40 @@ averages <- CHVIdata %>%
   })
   
   
+##### generate County (tab 1) Table ######  
+  
+  output$countyTable <- DT::renderDataTable({DT::datatable(
+    
+    
+    CHVIdata %>% filter(county == input$cnty1 & metric == "est") %>% 
+    left_join(averages) %>% 
+    mutate(label = paste0(def," - ", strata),
+           ratio = value/stateAverage,
+           category = ifelse(ratio < 0.9, "below CA average",
+                             ifelse(ratio > 1.1, "above CA average","around CA average"))) %>%
+      select(county, climReg, def, strata, value, stateAverage, category) %>%
+      rename(County = county, 
+             Region = climReg, 
+             Indicator = def, 
+             Strata = strata,
+             Valule = value, 
+             CA_avg = stateAverage, 
+             Category =category
+             ), 
+    options=list(pageLength = 25)
+  )  %>% DT::formatRound(c(5,6), 1)
+    
+    
+    
+    
+  })
   
   
   
-##### generate plot #####
+##### generate plot (tab 2) #####
   
   output$plot <- renderPlot({
-    
-    if(input$ind == "All") {
-      data58() %>%
-        ggplot() +
-        geom_bar(
-          aes(
-            x = reorder(County, Mean),
-            y = Mean,
-            fill = selRegion,
-            alpha = selCounty
-          ),
-          stat = "identity",
-          position = "dodge"
-        ) +
-        xlab(label = "Counties") + ylab(input$ind) + guides(fill = FALSE, alpha = FALSE) +
-        geom_hline(
-          yintercept = mean(data58()$Mean, na.rm = T),
-          color = "black",
-          alpha = 0.5
-        ) +
-        scale_alpha_discrete(range = c(0.2, 0.9)) +
-        theme_update(axis.text.x = element_text(angle = 60, hjust = 1))
-    } 
-    else ({
+  
     data58() %>%
       ggplot() +
       geom_bar(
@@ -351,15 +378,19 @@ averages <- CHVIdata %>%
         alpha = 0.5
       ) +
       scale_alpha_discrete(range = c(0.3, 0.8)) +
-      theme_update(axis.text.x = element_text(angle = 60, hjust = 1))+ 
-        ggtitle(paste0(input$cnty," county and Region (blue) compared to others in the state (red) - with the state average (black line) for the selcted indicator - ",input$ind))
-    })
+        scale_fill_manual(values = c("green","blue")) +
+        coord_flip() +
+        theme_update(axis.text.y = element_text(size=6), axis.text.x = element_text(size=10))+ 
+        ggtitle(paste0(input$cnty," county (dark blue) and its region (light blue) compared to others in the state (green) -   \n shown for ",input$ind, " ."))
+    
+    
+    #    
   })
   
   output$summary <-
     renderText(paste0("This section is still under development. You have selected ", input$cnty, " County"))
   
-##### Download the csv of the selected data  ######  
+##### Download the csv of the selected data (tab 2)  ######  
   output$downloadData <- downloadHandler(
     filename = function () {
       paste0("selectedCHVIdata.csv")
@@ -386,7 +417,11 @@ averages <- CHVIdata %>%
   
   
   output$downloadCHPR <- renderUI({ 
-    HTML(paste0("<a href =", links$CHPR.Link[links$County %in% c(input$cnty, paste0(input$cnty," "))],">Download County Health Profile</a>"))
+    HTML(paste0("<a href =", links$CHPR.Link[links$County %in% c(input$cntyCHPR, paste0(input$cntyCHPR," "))],">Download County Health Profile</a>"))
+  })
+  
+  output$downloadCHPR1 <- renderUI({ 
+    HTML(paste0("<a href =", links$CHPR.Link[links$County %in% c(input$cnty1, paste0(input$cnty1," "))],">Download County Health Profile</a>"))
   })
   
   

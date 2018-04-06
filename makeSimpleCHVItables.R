@@ -46,7 +46,22 @@ ac <-
   "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_AirConditioning_797_CO_RE_CA.xlsx"
 
 
-
+namesList <- c(
+  "def",
+  "county",
+  "geotypv",
+  "geotype",
+  "est",
+  "region",
+  "LL95",
+  "UL95",
+  "numratr",
+  "denmntr",
+  "race",
+  "COUNTYFI_1",
+  "strata",
+  "ind"
+)
 
 #############################
 ######### Function ##########
@@ -180,7 +195,7 @@ simplifyCHVI <- function(indicator = "indicator") {
   
   # we will need to change these settings for some indicators that have different use of the strata or report years (heat)
   temp2 <- temp %>%
-    filter(geotype == "CT", race_eth_name == "Total")  %>% # here's where we can filter the data further
+    filter(geotype == "CT")  %>% # here's where we can filter the data further
     select(
       ind_definition,
       county_name,
@@ -191,29 +206,15 @@ simplifyCHVI <- function(indicator = "indicator") {
       LL_95CI,
       UL_95CI,
       numerator,
-      denominator
+      denominator,
+      race_eth_name
     ) %>% # the file is parsed down to these columns only
     mutate(ct10 = as.character(geotypevalue),
            strat = "none",
            ind = indicator)
   
   
-  names(temp2) <-
-    c(
-      "def",
-      "cnty",
-      "geotypv",
-      "geotype",
-      "est",
-      "region",
-      "LL95",
-      "UL95",
-      "numratr",
-      "denmntr",
-      "ct10",
-      "strata",
-      "ind"
-    )
+  names(temp2) <- namesList
   
   temp2 %>% write.csv(paste0(workingPath, "tables/tracts/CHVI_", indicator, "_tract.csv"),
                       row.names = F) # it writes a file to your home directory with the name including the indicator and the geography
@@ -238,7 +239,8 @@ simplifyCHVI <- function(indicator = "indicator") {
       LL_95CI,
       UL_95CI,
       numerator,
-      denominator
+      denominator,
+      race_eth_name
     ) %>% # the file is parsed down to these columns only
     mutate(
       COUNTYFI_1 = as.character(geotypevalue),
@@ -246,22 +248,7 @@ simplifyCHVI <- function(indicator = "indicator") {
       ind = indicator
     )
   
-  names(temp2) <-
-    c(
-      "def",
-      "county",
-      "geotypv",
-      "geotype",
-      "est",
-      "region",
-      "LL95",
-      "UL95",
-      "numratr",
-      "denmntr",
-      "COUNTYFI_1",
-      "strata",
-      "ind"
-    )
+  names(temp2) <- namesList
   
   temp2 %>% write.csv(
     paste0(
@@ -356,28 +343,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = "none",
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(
   workingPath,
@@ -446,28 +419,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -496,28 +455,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -593,28 +538,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -643,28 +574,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -697,29 +614,15 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -748,28 +651,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -845,28 +734,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -895,28 +770,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -949,29 +810,15 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1000,28 +847,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1094,29 +927,15 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1144,28 +963,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1197,29 +1002,15 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1247,28 +1038,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1303,29 +1080,15 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1353,28 +1116,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1445,28 +1194,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(workingPath, "tables/tracts/CHVI_", indicator, "_tract.csv"),
                     row.names = F) # it writes a file to your home directory with the name including the indicator and the geography
@@ -1484,28 +1219,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(
   workingPath,
@@ -1576,28 +1297,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(workingPath, "tables/tracts/CHVI_", indicator, "_tract.csv"),
                     row.names = F) # it writes a file to your home directory with the name including the indicator and the geography
@@ -1617,28 +1324,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(
   workingPath,
@@ -1677,28 +1370,14 @@ temp2 <- temp %>%
     ll_95ci,
     ul_95ci,
     numerator,
-    denominator
+    denominator,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = "ViolentCrime",
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(
   workingPath,
@@ -1737,29 +1416,15 @@ temp2 <- temp %>%
     LL_95CI_percent,
     UL_95CI_percent,
     NumPov,
-    TotalPop
+    TotalPop,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1789,28 +1454,14 @@ temp2 <- temp %>%
     LL_95CI_percent,
     UL_95CI_percent,
     NumPov,
-    TotalPop
+    TotalPop,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1826,20 +1477,35 @@ temp2 %>% write.csv(
 
 #
 # # run for Concentrated Poverty
-# strat <- 'Concentrated' # use Child, Concentrated, Overall for poverty
-#
-# # parse and write COUNTY data
-# temp2 <- temp %>%
-#   filter(geotype == "CO", race_eth_name == "Total", Poverty == strat, reportyear == "2006-2010")  %>% # here's where we can filter the data further
-#   select(ind_definition, county_name, geotypevalue, geotype, percent, region_name, LL_95CI_percent, UL_95CI_percent, NumPov, TotalPop) %>% # the file is parsed down to these columns only
-#   mutate(COUNTYFI_1= as.character(geotypevalue),
-#          strata = strat,
-#          ind=indicator)
-#
-# names(temp2) <- c("def", "county", "geotypv", "geotype", "est", "region", "LL95", "UL95", "numratr", "denmntr", "COUNTYFI_1", "strata","ind")
-#
-# temp2 %>% write.csv(paste0(workingPath,"tables/counties/CHVI_",indicator,"_",strat,"_county.csv"),row.names=F) # it writes a file to your home directory with the name including the indicator and the geography
-#
+strat <- 'Concentrated' # use Child, Concentrated, Overall for poverty
+
+# parse and write COUNTY data
+temp2 <- temp %>%
+  filter(geotype == "CO",
+         race_eth_name == "Total",
+         Poverty == strat,
+         reportyear == "2006-2010")  %>% # here's where we can filter the data further
+  select(
+    ind_definition,
+    county_name,
+    geotypevalue,
+    geotype,
+    percent,
+    region_name,
+    LL_95CI_percent,
+    UL_95CI_percent,
+    NumPov,
+    TotalPop,
+    race_eth_name
+  ) %>% # the file is parsed down to these columns only
+  mutate(COUNTYFI_1 = as.character(geotypevalue),
+         strata = strat,
+         ind = indicator)
+
+names(temp2) <- namesList
+
+temp2 %>% write.csv(paste0(workingPath,"tables/counties/CHVI_",indicator,"_",strat,"_county.csv"),row.names=F) # it writes a file to your home directory with the name including the indicator and the geography
+
 
 
 # run for Overall Poverty
@@ -1861,29 +1527,15 @@ temp2 <- temp %>%
     LL_95CI_percent,
     UL_95CI_percent,
     NumPov,
-    TotalPop
+    TotalPop,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1913,28 +1565,14 @@ temp2 <- temp %>%
     LL_95CI_percent,
     UL_95CI_percent,
     NumPov,
-    TotalPop
+    TotalPop,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = strat,
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(
   paste0(
@@ -1972,29 +1610,15 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     pop25pl_hs,
-    pop25pl
+    pop25pl,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(ct10 = as.character(geotypevalue),
          strata = "2006-2010",
          ind = indicator)
 
 
-names(temp2) <-
-  c(
-    "def",
-    "cnty",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "ct10",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(workingPath, "tables/tracts/CHVI_", indicator, "_tract.csv"),
                     row.names = F) # it writes a file to your home directory with the name including the indicator and the geography
@@ -2014,28 +1638,14 @@ temp2 <- temp %>%
     LL_95CI,
     UL_95CI,
     pop25pl_hs,
-    pop25pl
+    pop25pl,
+    race_eth_name
   ) %>% # the file is parsed down to these columns only
   mutate(COUNTYFI_1 = as.character(geotypevalue),
          strata = "2006-2010",
          ind = indicator)
 
-names(temp2) <-
-  c(
-    "def",
-    "county",
-    "geotypv",
-    "geotype",
-    "est",
-    "region",
-    "LL95",
-    "UL95",
-    "numratr",
-    "denmntr",
-    "COUNTYFI_1",
-    "strata",
-    "ind"
-  )
+names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(
   workingPath,

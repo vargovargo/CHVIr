@@ -7,8 +7,8 @@ library(shinythemes)
 library(ggthemes)
 library(sf)
 library(DT)
-# library(plotly)
-# library(ggplot2)
+library(plotly)
+
 
 
 links <-read.csv("CHPRlinks.csv", header=T)
@@ -28,7 +28,7 @@ ui <-  fluidPage(
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
              theme = shinytheme("flatly"),
              title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" #,
-                                   #img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHIViz/CCHEPbannerLong.gif", style = "position: relative; top: -3px; right: 0px;")
+                                   # img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHIViz/CCHEPbannerLong.gif", style = "position: relative; top: -3px; right: 0px;")
                                    )),
              
              tabPanel("Single County",
@@ -44,11 +44,11 @@ ui <-  fluidPage(
                          c(sort(unique(as.character(CHVIdata$county)))
                          ))
       ),
-      column(3,
+      column(3,br(),
              p(uiOutput("downloadCHPR1"))
       )),
     fluidRow(
-      column(9, wellPanel(plotOutput("plotCounty"))),
+      column(9, wellPanel(plotlyOutput("plotCounty"))),
       column(3, includeMarkdown("countyPlot.md"))),
     wellPanel(DT::dataTableOutput("countyTable"))
       
@@ -98,7 +98,7 @@ tabPanel(
   ),
   
     fluidRow(column(8,
-                    wellPanel(plotOutput("plot"))
+                    wellPanel(plotlyOutput("plot"))
                     ), 
              column(4,
                     wellPanel(leafletOutput("map"))
@@ -207,7 +207,7 @@ averages <- CHVIdata %>%
   
 ##### create reactive table for single indicator #####
   
-  data58 <- reactive({
+  data.tab2 <- reactive({
 
       CHVIdata %>%
       mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
@@ -221,7 +221,11 @@ averages <- CHVIdata %>%
         Numerator = numratr,
         Denominator = denmntr) %>%
       mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
-             selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "yes","no"))
+             selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], 
+                                paste0("In ",CHVIdata$climReg[CHVIdata$county == input$cnty][1]," region"),
+                               "Outside region"),
+             countyAlpha = ifelse(County == input$cnty, 0.9, 0.6),
+             countyColor = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "rgb(49,130,189, 0.8)", "rgb(49,163,84, 0.3)"))
    
  })
   
@@ -241,11 +245,109 @@ averages <- CHVIdata %>%
   })
   
 
+  
+#####  reactive table tab 1 #####
+  
+  data.tab1 <- eventReactive(input$cnty1,{
+    
+    CHVIdata %>% filter(county == input$cnty1 & metric == "est") %>% 
+      left_join(averages) %>% 
+      mutate(label = paste0(def," - ", strata),
+             ratio = value/stateAverage,
+             category = ifelse(ratio < 0.9, "below CA average",
+                               ifelse(ratio > 1.1, "above CA average","around CA average")),
+             fillColor = ifelse(ratio < 0.9, "#91bfdb",
+                               ifelse(ratio > 1.1, "#fc8d59","#ffffbf")))
+  })
+  
+ 
+##### generate County (tab 1) Plot #####
+  
+  output$plotCounty <- renderPlotly({
+   
+    tab1.df <- data.tab1()
+    
+      plot_ly( 
+        data = tab1.df,
+        x =  ~ round(ratio,2),
+        y =  ~ reorder(label, ratio),
+        marker = list(color = tab1.df[["fillColor"]],
+                      line = list(color = "#404040", width=.5)
+        ),
+        type = "bar",
+        showlegend = FALSE
+      ) %>%
+      layout(margin = list(l = 650),
+             xaxis = list(
+               title = "Ratio to State Average",
+               size = 4,
+               autotick = TRUE,
+               ticks = "outside",
+               tick0 = 0,
+               dtick = 0.25,
+               ticklen = 5,
+               tickwidth = 2,
+               tickcolor = toRGB("black")
+             ),
+             yaxis = list(title = "Indicator and Strata", 
+                          type = "category")
+      )  %>%
+      config(collaborate = FALSE,
+             cloud = FALSE,
+             displaylogo = FALSE,
+             modeBarButtonsToRemove = list(
+               'toggleSpikelines',
+               'sendDataToCloud',
+               'hoverCompareCartesian',
+               'zoom2d',
+               'pan2d',
+               'select2d',
+               'lasso2d',
+               'zoomIn2d',
+               'zoomOut2d',
+               'autoScale2d',
+               'resetScale2d',
+               'hoverClosestCartesian'
+             )
+      )
+      
+    # ggplot() + 
+    # geom_bar(aes(x=reorder(label, ratio), y=ratio, fill=category), stat="identity") +
+    # coord_flip() +
+    # geom_hline(yintercept = 1, linetype="dashed") + 
+    # xlab("Indicator and Strata") +
+    # ylab("Ratio to State Average") +
+    # scale_fill_discrete(name="")
+  
+  
+  })
+  
+  
+##### generate County (tab 1) Table ######  
+  
+  output$countyTable <- DT::renderDataTable({DT::datatable(
+    
+    data.tab1() %>%
+      select(county, climReg, def, strata, value, stateAverage, category) %>%
+      rename(County = county, 
+             Region = climReg, 
+             Indicator = def, 
+             Strata = strata,
+             Valule = value, 
+             CA_avg = stateAverage, 
+             Category =category
+             ), 
+    options=list(pageLength = 25)
+  )  %>% DT::formatRound(c(5,6), 1)
+    
+  })
+  
+ 
 ##### generate table of the data (tab 2) #####
   
   output$table <- DT::renderDataTable({DT::datatable(
-    data58()  %>%
-     select(
+    data.tab2()  %>%
+      select(
         County,
         Region,
         Definition,
@@ -258,14 +360,14 @@ averages <- CHVIdata %>%
       )) %>% DT::formatRound(c(5:9), 1)
   })
   
-
- 
+  
+  
 ##### generate map (tab 2) #####
   
   output$map <- renderLeaflet({
     if (input$ind != "All") {
-  
-       mapTemp <- left_join(counties, data58()) 
+      
+      mapTemp <- left_join(counties, data.tab2()) 
       
       pal <- colorQuantile(
         palette = "RdYlBu",
@@ -290,11 +392,11 @@ averages <- CHVIdata %>%
                          round(mapTemp$Mean[mapTemp$County == mapTemp$County]),". The state average is ", round(mean(mapTemp$Mean, na.rm=T),2))
         ) %>%
         addLegend("topright",
-          pal = pal,
-          values = ~ Mean,
-          opacity = 1,
-          labFormat = labelFormat(),
-          title = input$ind 
+                  pal = pal,
+                  values = ~ Mean,
+                  opacity = 1,
+                  labFormat = labelFormat(),
+                  title = input$ind 
         ) %>%
         clearControls()
       
@@ -303,90 +405,92 @@ averages <- CHVIdata %>%
   })
   
   
-##### generate County (tab 1) Plot #####
-  
-  output$plotCounty <- renderPlot({
-    
-    CHVIdata %>% filter(county == input$cnty1 & metric == "est") %>% 
-    left_join(averages) %>% 
-    mutate(label = paste0(def," - ", strata),
-           ratio = value/stateAverage,
-           category = ifelse(ratio < 0.9, "below CA average",
-                             ifelse(ratio > 1.1, "above CA average","around CA average"))) %>%
-    ggplot() + 
-    geom_bar(aes(x=reorder(label, ratio), y=ratio, fill=category), stat="identity") +
-    coord_flip() +
-    geom_hline(yintercept = 1, linetype="dashed") + 
-    xlab("Indicator and Strata") +
-    ylab("Ratio to State Average") +
-    scale_fill_discrete(name="")
-  
-  
-  })
-  
-  
-##### generate County (tab 1) Table ######  
-  
-  output$countyTable <- DT::renderDataTable({DT::datatable(
-    
-    
-    CHVIdata %>% filter(county == input$cnty1 & metric == "est") %>% 
-    left_join(averages) %>% 
-    mutate(label = paste0(def," - ", strata),
-           ratio = value/stateAverage,
-           category = ifelse(ratio < 0.9, "below CA average",
-                             ifelse(ratio > 1.1, "above CA average","around CA average"))) %>%
-      select(county, climReg, def, strata, value, stateAverage, category) %>%
-      rename(County = county, 
-             Region = climReg, 
-             Indicator = def, 
-             Strata = strata,
-             Valule = value, 
-             CA_avg = stateAverage, 
-             Category =category
-             ), 
-    options=list(pageLength = 25)
-  )  %>% DT::formatRound(c(5,6), 1)
-    
-    
-    
-    
-  })
-  
-  
-  
 ##### generate plot (tab 2) #####
   
-  output$plot <- renderPlot({
+  # output$plot <- renderPlot({
+  # 
+  #   data.tab2() %>%
+  #     ggplot() +
+  #     geom_bar(
+  #       aes(
+  #         x = reorder(County, Mean),
+  #         y = Mean,
+  #         fill = selRegion,
+  #         alpha = selCounty
+  #       ),
+  #       stat = "identity",
+  #       position = "dodge"
+  #     ) +
+  #     xlab(label = "Counties") + ylab(input$ind) + guides(fill = FALSE, alpha = FALSE) +
+  #     geom_hline(
+  #       yintercept = mean(data.tab2()$Mean, na.rm = T),
+  #       color = "black",
+  #       alpha = 0.5
+  #     ) +
+  #     scale_alpha_discrete(range = c(0.3, 0.8)) +
+  #       scale_fill_manual(values = c("green","blue")) +
+  #       coord_flip() +
+  #       theme_update(axis.text.y = element_text(size=6), axis.text.x = element_text(size=10))+ 
+  #       ggtitle(paste0(input$cnty," county (dark blue) and its region (light blue) compared to others in the state (green) -   \n shown for ",input$ind, " ."))
+  #   
+  #   
+  #   #    
+  # })
   
-    data58() %>%
-      ggplot() +
-      geom_bar(
-        aes(
-          x = reorder(County, Mean),
-          y = Mean,
-          fill = selRegion,
-          alpha = selCounty
+  output$plot <- renderPlotly({
+    
+    tab2.df <- data.tab2()
+    
+    plot_ly(
+      data = tab2.df,
+      x =  ~ round(Mean, 2),
+      y =  ~ reorder(County, Mean),
+      marker = list(color = tab2.df[["countyColor"]],
+                    line = list(color = "#404040", width=.5), 
+                    opacity = 0.3
+      ),
+      type = "bar",
+      showlegend = FALSE
+    ) %>%
+      layout(
+        title = paste0(input$cnty," county and its region (green) compared to others in the state (blue) -   \n shown for ",input$ind, " .") ,
+        margin = list(l = 130,
+                      t = 70),
+        xaxis = list(
+          title = input$ind,
+          autotick = TRUE,
+          ticks = "outside",
+          tick0 = 0,
+          dtick = 0.25,
+          ticklen = 5,
+          tickwidth = 2,
+          tickcolor = toRGB("black")
         ),
-        stat = "identity",
-        position = "dodge"
-      ) +
-      xlab(label = "Counties") + ylab(input$ind) + guides(fill = FALSE, alpha = FALSE) +
-      geom_hline(
-        yintercept = mean(data58()$Mean, na.rm = T),
-        color = "black",
-        alpha = 0.5
-      ) +
-      scale_alpha_discrete(range = c(0.3, 0.8)) +
-        scale_fill_manual(values = c("green","blue")) +
-        coord_flip() +
-        theme_update(axis.text.y = element_text(size=6), axis.text.x = element_text(size=10))+ 
-        ggtitle(paste0(input$cnty," county (dark blue) and its region (light blue) compared to others in the state (green) -   \n shown for ",input$ind, " ."))
+        yaxis = list(title = "Counties")
+      ) %>%
+      config(collaborate = FALSE,
+             cloud = FALSE,
+             displaylogo = FALSE,
+        modeBarButtonsToRemove = list(
+          'toggleSpikelines',
+          'sendDataToCloud',
+          'hoverCompareCartesian',
+          'zoom2d',
+          'pan2d',
+          'select2d',
+          'lasso2d',
+          'zoomIn2d',
+          'zoomOut2d',
+          'autoScale2d',
+          'resetScale2d',
+          'hoverClosestCartesian'
+        )
+      )
     
     
-    #    
   })
   
+
   output$summary <-
     renderText(paste0("This section is still under development. You have selected ", input$cnty, " County"))
   
@@ -398,7 +502,7 @@ averages <- CHVIdata %>%
     
     content = function(file) {
       write.csv({
-        data58() %>%
+        data.tab2() %>%
           select(
             County,
             Region,
@@ -438,9 +542,7 @@ averages <- CHVIdata %>%
   
   
   
-  
-  
-  ##### make triple plot #####
+##### make triple plot #####
   
   output$triplePlot <- renderPlot({
   
@@ -456,7 +558,13 @@ averages <- CHVIdata %>%
       filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric =="est") %>%
       mutate(sensTer = ntile(value, 3)) %>%
       select(county, climReg, COUNTYFI_1, def, value, sensTer) %>% 
-      spread(key = def, value = value)
+      spread(key = def, value = value) %>% 
+               left_join({
+                 CHVIdata %>%
+                   filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric == "denmntr") %>%
+                   select(county, value)
+               }) %>%
+               rename(Population = value)
     }) %>%  
       mutate(vulnerability = factor(sensTer + expTer)) 
 

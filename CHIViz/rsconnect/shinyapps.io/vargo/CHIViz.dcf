@@ -5,9 +5,9 @@ account: vargo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 296846
-bundleId: 1307076
+bundleId: 1314986
 url: https://vargo.shinyapps.io/CHIViz/
-when: 1523072260.87162
+when: 1523516387.04238
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: CCHEPbanner.png|CCHEPbannerLong.gif|CCHEPbannerLong.png

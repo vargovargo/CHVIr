@@ -9,11 +9,11 @@ library(sf)
 library(DT)
 library(plotly)
 
-
-
 links <-read.csv("CHPRlinks.csv", header=T)
-CHVIdata <- read.csv("chviCountyTidy.csv", header=T)
+CHVIdata <- read.csv("chviCountyTidy.csv", header=T, stringsAsFactors = FALSE) 
 counties <- st_read("counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
+
+CHVIdata$def <- ifelse(CHVIdata$def == "percent impervious surface cover", "Percent impervious surface cover", CHVIdata$def)
 
 ##### Define UI for application that draws a histogram #####
 ui <-  fluidPage(
@@ -140,7 +140,7 @@ tabPanel(
              #                      )))
              ),
            fluidRow(
-             column(9,wellPanel(plotOutput("triplePlot"))
+             column(9,wellPanel(plotlyOutput("triplePlot"))
              ), 
              column(3,
                     includeMarkdown("vulnerability.md"))
@@ -153,26 +153,60 @@ tabPanel(
 
   navbarMenu(
     "Additional Resources",
-    tabPanel("County Profile Report",
-             fluidRow(
-               column(4, 
-                      selectInput("cntyCHPR",
-                                  "Select Your County",
-                                  c(sort(unique(as.character(CHVIdata$county)))
-                                  ))
-                      ),
-               column(
-                 4,
-                 p(uiOutput("downloadCHPR"))
-               )
-             )),
-    
-    tabPanel("Download your Data",
+   tabPanel("Download your Data",
              fluidRow(
                column(3,
-               downloadLink(outputId = "downloadData", label = "Download Selected Data")
-             )             
-             )),
+                      selectInput("cntyDNLD",
+                                  "Select a County",
+                                  c("All",sort(unique(as.character(CHVIdata$county)))
+                                  ))
+               ),
+               column(3,
+                      selectInput("indDNLD",
+                                  "Select an Indicator",
+                                  c("All",
+                                    "Projected number of extreme heat days",
+                                    "Three-year ozone concentration exceedance",
+                                    "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                    "Population living in sea level rise inundation areas",
+                                    "Percent of population currently living in very high wildfire risk areas",
+                                    "Percent of population aged 65 years or older",
+                                    "Percent of population age less than 5 years",
+                                    "Number of Violent Crimes per 1,000 Population",
+                                    "Percent of population with a disability",
+                                    "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                                    "Percent of adults aged 18 - 64 without health insurance",
+                                    "Percent of households with no one aged > 14 years speaking English",
+                                    "Percent of population employed and aged > 16 working outdoors",
+                                    "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                                    "Percent of households with no vehicle ownership",
+                                    "Percent of households with air conditioning",
+                                    "Percent without tree canopy coverage",
+                                    "Percent impervious surface cover"
+                                  ))),
+               column(3,
+                      p(),
+               downloadButton(outputId = "downloadData", label = "Download Selected Data")
+             )),             
+            fluidRow(
+               wellPanel(DT::dataTableOutput("downloadTable"))
+    )),
+   
+   tabPanel("County Profile Report",
+            fluidRow(
+              column(4, 
+                     selectInput("cntyCHPR",
+                                 "Select Your County",
+                                 c(sort(unique(as.character(CHVIdata$county)))
+                                 ))
+              )),
+            fluidRow(
+              column(
+                4,
+                p(uiOutput("downloadCHPR"))
+              )
+            )),
+   
     
     tabPanel("About",
              fluidRow(
@@ -224,8 +258,10 @@ averages <- CHVIdata %>%
              selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], 
                                 paste0("In ",CHVIdata$climReg[CHVIdata$county == input$cnty][1]," region"),
                                "Outside region"),
-             countyAlpha = ifelse(County == input$cnty, 0.9, 0.6),
-             countyColor = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], "rgb(49,130,189, 0.8)", "rgb(49,163,84, 0.3)"))
+             countyColor = ifelse(County == input$cnty,"rgba(165,15,21, 1)", 
+                                  ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1],
+                                         "rgba(251,106,74, 0.5)",
+                                         "rgba(247,247,247, 0.3)")))
    
  })
   
@@ -284,16 +320,17 @@ averages <- CHVIdata %>%
                autotick = TRUE,
                ticks = "outside",
                tick0 = 0,
-               dtick = 0.25,
+               dtick = 1,
                ticklen = 5,
                tickwidth = 2,
                tickcolor = toRGB("black")
              ),
              yaxis = list(title = "Indicator and Strata", 
-                          type = "category")
+                          type = "category", 
+                          dtick=1, 
+                          size=3)
       )  %>%
       config(collaborate = FALSE,
-             cloud = FALSE,
              displaylogo = FALSE,
              modeBarButtonsToRemove = list(
                'toggleSpikelines',
@@ -446,14 +483,13 @@ averages <- CHVIdata %>%
       x =  ~ round(Mean, 2),
       y =  ~ reorder(County, Mean),
       marker = list(color = tab2.df[["countyColor"]],
-                    line = list(color = "#404040", width=.5), 
-                    opacity = 0.3
+                    line = list(color = "#404040", width=.5)
       ),
       type = "bar",
       showlegend = FALSE
     ) %>%
       layout(
-        title = paste0(input$cnty," county and its region (green) compared to others in the state (blue) -   \n shown for ",input$ind, " .") ,
+        title = paste0(input$cnty," county (red) and its region (pink) compared to others in the state -   \n shown for ",input$ind, ".") ,
         margin = list(l = 130,
                       t = 70),
         xaxis = list(
@@ -466,7 +502,10 @@ averages <- CHVIdata %>%
           tickwidth = 2,
           tickcolor = toRGB("black")
         ),
-        yaxis = list(title = "Counties")
+        yaxis = list(title = "Counties",
+                     type = "categorical",
+                     dtick=2
+                     )
       ) %>%
       config(collaborate = FALSE,
              cloud = FALSE,
@@ -490,11 +529,199 @@ averages <- CHVIdata %>%
     
   })
   
-
-  output$summary <-
-    renderText(paste0("This section is still under development. You have selected ", input$cnty, " County"))
+##### make triple plot (tab 3) #####
   
-##### Download the csv of the selected data (tab 2)  ######  
+  output$triplePlot <- renderPlotly({
+    
+    
+    tri <- {CHVIdata %>% 
+        filter(def  == input$exposure & strata %in% c("2085", 2085,"none") & metric =="est") %>%
+        mutate(expTer = ntile(value, 3)) %>%
+        select(county, climReg, COUNTYFI_1, def, value, expTer) %>% 
+        spread(key = def, value = value)
+    } %>% left_join({
+      
+      CHVIdata %>% 
+        filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric =="est") %>%
+        mutate(sensTer = ntile(value, 3)) %>%
+        select(county, climReg, COUNTYFI_1, def, value, sensTer) %>% 
+        spread(key = def, value = value) %>% 
+        left_join({
+          CHVIdata %>%
+            filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric == "denmntr") %>%
+            select(county, value)
+        }) %>%
+        rename(Population = value)
+    }) %>%  
+      mutate(Population = as.numeric(as.character(Population)),
+             vulnerability = factor(sensTer + expTer))
+    
+    tri[["sign"]] <- ifelse(tri[["vulnerability"]] == 2, "rgba(26,152,80, 0.5)",
+                            ifelse(tri[["vulnerability"]] == 3, "rgba(166,217,106, 0.6)",
+                                   ifelse(tri[["vulnerability"]] == 4, "rgba(253,174,97, 0.7)",
+                                          ifelse(tri[["vulnerability"]] == 5, "rgba(244,109,67, 0.9)", "rgba(215,48,39, 1)"))))
+    
+    tri[["size"]] <- ntile(tri[["Population"]],20)
+    
+    
+    # left_join({
+    #   
+    #   CHVIdata %>% 
+    #     filter(def  == input$capacity & strata %in% c("population-weighted", "none") & metric =="est") %>%
+    #     select(county, climReg, COUNTYFI_1, def, value) %>% 
+    #     spread(key = def, value = value)
+    #   
+    # }) %>% 
+    
+    # tri %>% ggplot(aes_q(x = as.name(names(tri)[5]), 
+    #                      y = as.name(names(tri)[7]),
+    #                      size = as.name(names(tri)[8]), 
+    #                      color = as.name(names(tri)[8])
+    #                )) +
+    #   geom_point(alpha = 0.9) +
+    #   guides(alpha = FALSE, color = FALSE, size = FALSE) + 
+    #   scale_color_brewer(palette = "Spectral", direction = -1) +
+    #   scale_size_continuous(range = c(3,15)) + 
+    #   geom_text(aes_q(x = as.name(names(tri)[5]), 
+    #                   y = as.name(names(tri)[7]), 
+    #                   label = as.name(names(tri)[1])), size= 3, color="black") + 
+    #   ggtitle("This plot displays the vulnerability to two factors. Counties in the top right corner (red) are in the top third of all counties for each.")
+    # 
+    
+    plot_ly(
+      data = tri,
+      x =  ~ round(tri[[5]],2),
+      y =  ~ round(tri[[7]],2),
+      type = 'scatter', 
+      mode = 'markers',
+      size = ~tri[["Population"]]+35,
+      marker = list(color = tri[["sign"]], 
+                    size = tri[["size"]]*25),
+      text = paste0(tri[["county"]]," - ",tri[["Population"]]),
+      showlegend = FALSE
+    ) %>%
+      layout(margin = list(l = 50),
+             xaxis = list(
+               title = names(tri)[5],
+               autotick = TRUE,
+               ticks = "outside",
+               tick0 = 0,
+               dtick = 0.25,
+               ticklen = 5,
+               tickwidth = 2,
+               tickcolor = toRGB("black")
+             ),
+             yaxis = list(title = names(tri)[7],
+                          autotick = TRUE,
+                          ticks = "outside",
+                          tick0 = 0,
+                          dtick = 0.25,
+                          ticklen = 5,
+                          tickwidth = 2,
+                          tickcolor = toRGB("black"))
+      ) %>%
+      config(collaborate = FALSE,
+             displaylogo = FALSE,
+             modeBarButtonsToRemove = list(
+               'toggleSpikelines',
+               'sendDataToCloud',
+               'hoverCompareCartesian',
+               'zoom2d',
+               'pan2d',
+               'select2d',
+               'lasso2d',
+               'zoomIn2d',
+               'zoomOut2d',
+               'autoScale2d',
+               'resetScale2d',
+               'hoverClosestCartesian'
+             )
+      )
+    
+  })
+  
+  
+  
+  
+##### Strata Interface for Download tab #####
+  
+  output$chooseStrataDNLD <- renderUI({
+    
+    if(input$indDNLD =="All"){
+      return()
+    } else {
+      
+    selectInput("strtDNLD",
+                "Strata",{
+                  unique(
+                    as.character({CHVIdata %>% filter(def == input$indDNLD)}$strata)
+                  )
+                  
+                }
+    )}
+  })
+  
+  
+  
+  data.dnld <- eventReactive(c(input$cntyDNLD, input$indDNLD),{
+    
+    if(input$cntyDNLD  == "All" & input$indDNLD != "All") {
+      
+      CHVIdata %>%
+        mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
+        filter(def == input$indDNLD) %>%
+        spread(key = metric, value = value) %>%
+        rename(
+          County = county,
+          Region = climReg,
+          Definition = def,
+          Mean = est, 
+          Numerator = numratr,
+          Denominator = denmntr)
+    } else { if(input$cntyDNLD  != "All" & input$indDNLD != "All") {
+      
+      CHVIdata %>%
+        mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
+        filter(def == input$indDNLD & county == input$cntyDNLD) %>%
+        spread(key = metric, value = value) %>%
+        rename(
+          County = county,
+          Region = climReg,
+          Definition = def,
+          Mean = est, 
+          Numerator = numratr,
+          Denominator = denmntr)
+    } else { if(input$cntyDNLD  != "All" & input$indDNLD == "All") {
+      
+      CHVIdata %>%
+        mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
+        filter(county == input$cntyDNLD) %>%
+        spread(key = metric, value = value) %>%
+        rename(
+          County = county,
+          Region = climReg,
+          Definition = def,
+          Mean = est, 
+          Numerator = numratr,
+          Denominator = denmntr)
+    } else {   
+      
+      CHVIdata %>%
+        mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
+        spread(key = metric, value = value) %>%
+        rename(
+          County = county,
+          Region = climReg,
+          Definition = def,
+          Mean = est, 
+          Numerator = numratr,
+          Denominator = denmntr)
+    } } }
+    
+  })
+  
+   
+##### Download the csv of the selected data (download tab)  ######  
   output$downloadData <- downloadHandler(
     filename = function () {
       paste0("selectedCHVIdata.csv")
@@ -502,7 +729,7 @@ averages <- CHVIdata %>%
     
     content = function(file) {
       write.csv({
-        data.tab2() %>%
+        data.dnld() %>%
           select(
             County,
             Region,
@@ -510,12 +737,38 @@ averages <- CHVIdata %>%
             strata,
             Mean,
             LL95,
-            UL95
+            UL95,
+            Numerator,
+            Denominator
           )
         }, file, row.names = F)
     }
     
   )
+  
+  
+  ##### generate (download tab) Table ######  
+  
+  output$downloadTable <- DT::renderDataTable({DT::datatable(
+    
+    data.dnld() %>%
+      select(
+        County,
+        Region,
+        Definition,
+        strata,
+        Mean,
+        LL95,
+        UL95,
+        Numerator,
+        Denominator
+      ), 
+    options=list(pageLength = 25)
+  )  %>% DT::formatRound(c(5:9), 1)
+    
+  })
+  
+  
   
 ##### Download the County Health Profile Report  ######  
   
@@ -539,60 +792,6 @@ averages <- CHVIdata %>%
   #   }
   #   
   # )
-  
-  
-  
-##### make triple plot #####
-  
-  output$triplePlot <- renderPlot({
-  
-  
-    tri <- {CHVIdata %>% 
-    filter(def  == input$exposure & strata %in% c("2085", 2085,"none") & metric =="est") %>%
-    mutate(expTer = ntile(value, 3)) %>%
-    select(county, climReg, COUNTYFI_1, def, value, expTer) %>% 
-    spread(key = def, value = value)
-           } %>% left_join({
-    
-    CHVIdata %>% 
-      filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric =="est") %>%
-      mutate(sensTer = ntile(value, 3)) %>%
-      select(county, climReg, COUNTYFI_1, def, value, sensTer) %>% 
-      spread(key = def, value = value) %>% 
-               left_join({
-                 CHVIdata %>%
-                   filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric == "denmntr") %>%
-                   select(county, value)
-               }) %>%
-               rename(Population = value)
-    }) %>%  
-      mutate(vulnerability = factor(sensTer + expTer)) 
-
-  # left_join({
-  #   
-  #   CHVIdata %>% 
-  #     filter(def  == input$capacity & strata %in% c("population-weighted", "none") & metric =="est") %>%
-  #     select(county, climReg, COUNTYFI_1, def, value) %>% 
-  #     spread(key = def, value = value)
-  #   
-  # }) %>% 
-      
-      tri %>% ggplot(aes_q(x = as.name(names(tri)[5]), 
-                           y = as.name(names(tri)[7]),
-                           size = as.name(names(tri)[8]), 
-                           color = as.name(names(tri)[8])
-                     )) +
-        geom_point(alpha = 0.9) +
-        guides(alpha = FALSE, color = FALSE, size = FALSE) + 
-        scale_color_brewer(palette = "Spectral", direction = -1) +
-        scale_size_discrete(range = c(3,15)) + 
-        geom_text(aes_q(x = as.name(names(tri)[5]), 
-                        y = as.name(names(tri)[7]), 
-                        label = as.name(names(tri)[1])), size= 3, color="black") + 
-        ggtitle("This plot displays the vulnerability to two factors. Counties in the top right corner (red) are in the top third of all counties for each.")
-    
-  })
-  
   
 }
 

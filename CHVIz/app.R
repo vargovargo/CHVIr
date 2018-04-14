@@ -15,6 +15,49 @@ counties <- st_read("counties.geojson", stringsAsFactors = F) %>% st_transform(c
 
 CHVIdata$def <- ifelse(CHVIdata$def == "percent impervious surface cover", "Percent impervious surface cover", CHVIdata$def)
 
+CHVIdata <- left_join(x = CHVIdata, y = {
+  data.frame(def= c("Percent of households with air conditioning", 
+                    "Percent without tree canopy coverage", 
+                    "Percent of population age less than 5 years", 
+                    "Number of Violent Crimes per 1,000 Population",
+                    "Percent of population with a disability", 
+                    "High School or Greater Educational Attainment in the Population Aged 25 Years and Older", 
+                    "Percent of population aged 65 years or older", 
+                    "Projected number of extreme heat days", 
+                    "percent impervious surface cover", 
+                    "Percent of adults aged 18 - 64 without health insurance", 
+                    "Percent of households with no one aged > 14 years speaking English", 
+                    "Percent of population employed and aged > 16 working outdoors",  
+                    "Three-year ozone concentration exceedance", 
+                    "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                    "Overall, concentrated, and child (0 to 18 years of age) poverty rate", 
+                    "Population living in sea level rise inundation areas", 
+                    "Percent of households with no vehicle ownership", 
+                    "Percent of population currently living in very high wildfire risk areas" 
+  ), 
+  defShort = c( "% HH with AC",
+                "% Tree Canopy",                                                   
+                "% under 5",                                           
+                "Violent Crimes/1,000",                                      
+                "% with a Disability",                                                
+                "% w/ HS Education",
+                "% over 65",                                           
+                "Extreme Heat Days",                                                  
+                "% Impervious Surface",  
+                "% w/o Health Insurance",                               
+                "% HH w/o English Speaker",                     
+                "% outdoor workers",                        
+                "O3 Concentration above Standard",                                              
+                "Annual Mean PM2.5 Concentration",                
+                "% in Poverty",                    
+                "% in Sea Level Rise Risk Areas",                                   
+                "% HH w/o Vehicle",                                        
+                " % in Very High Wildfire Risk" 
+  )
+  )}
+)
+
+
 ##### Define UI for application that draws a histogram #####
 ui <-  fluidPage(
     div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
@@ -288,7 +331,7 @@ averages <- CHVIdata %>%
     
     CHVIdata %>% filter(county == input$cnty1 & metric == "est") %>% 
       left_join(averages) %>% 
-      mutate(label = paste0(def," - ", strata),
+      mutate(label = paste0(defShort," - ", strata),
              ratio = value/stateAverage,
              category = ifelse(ratio < 0.9, "below CA average",
                                ifelse(ratio > 1.1, "above CA average","around CA average")),
@@ -313,7 +356,7 @@ averages <- CHVIdata %>%
         type = "bar",
         showlegend = FALSE
       ) %>%
-      layout(margin = list(l = 650),
+      layout(margin = list(l = 300),
              xaxis = list(
                title = "Ratio to State Average",
                size = 4,
@@ -328,7 +371,7 @@ averages <- CHVIdata %>%
              yaxis = list(title = "Indicator and Strata", 
                           type = "category", 
                           dtick=1, 
-                          size=3)
+                          size=2)
       )  %>%
       config(collaborate = FALSE,
              displaylogo = FALSE,
@@ -592,14 +635,24 @@ averages <- CHVIdata %>%
       data = tri,
       x =  ~ round(tri[[5]],2),
       y =  ~ round(tri[[7]],2),
-      type = 'scatter', 
-      mode = 'markers',
-      size = ~tri[["Population"]]+35,
-      marker = list(color = tri[["sign"]], 
-                    size = tri[["size"]]*25),
-      text = paste0(tri[["county"]]," - ",tri[["Population"]]),
+      hoverinfo = 'text',
+      text = ~paste('</br> County ',tri[["county"]],
+                    '</br> Population: ',format(tri[["Population"]], big.mark = ","),
+                    '</br> Exposure: ', round(tri[[5]],2), " ", names(tri)[5],
+                    '</br> Sensitivity: ', round(tri[[7]],2), " ", names(tri)[7]),
       showlegend = FALSE
     ) %>%
+      add_markers(type = 'scatter', 
+                  mode = 'markers',
+                  size = ~tri[["Population"]]+35,
+                  marker = list(color = tri[["sign"]], 
+                                size = tri[["size"]]*25,   
+                                line = list(color = 'rgba(99,99,99, .8)',width = 0.5))) %>%
+      add_text(type = 'scatter',mode = 'text', text = tri[["county"]], textposition = 'top right',
+                textfont = list(
+                  family = "sans serif",
+                  size = 8,
+                  color = toRGB("grey20"))) %>%
       layout(margin = list(l = 50),
              xaxis = list(
                title = names(tri)[5],

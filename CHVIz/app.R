@@ -24,7 +24,7 @@ CHVIdata <- left_join(x = CHVIdata, y = {
                     "High School or Greater Educational Attainment in the Population Aged 25 Years and Older", 
                     "Percent of population aged 65 years or older", 
                     "Projected number of extreme heat days", 
-                    "percent impervious surface cover", 
+                    "Percent impervious surface cover", 
                     "Percent of adults aged 18 - 64 without health insurance", 
                     "Percent of households with no one aged > 14 years speaking English", 
                     "Percent of population employed and aged > 16 working outdoors",  
@@ -190,51 +190,58 @@ tabPanel(
                          
            )
           ),
+tabPanel("Download your Data",
+         fluidRow(
+           column(3,
+                  selectInput("cntyDNLD",
+                              "Select a County",
+                              c("All",sort(unique(as.character(CHVIdata$county)))
+                              ))
+           ),
+           column(3,
+                  selectInput("indDNLD",
+                              "Select an Indicator",
+                              c("All",
+                                "Projected number of extreme heat days",
+                                "Three-year ozone concentration exceedance",
+                                "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                "Population living in sea level rise inundation areas",
+                                "Percent of population currently living in very high wildfire risk areas",
+                                "Percent of population aged 65 years or older",
+                                "Percent of population age less than 5 years",
+                                "Number of Violent Crimes per 1,000 Population",
+                                "Percent of population with a disability",
+                                "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                                "Percent of adults aged 18 - 64 without health insurance",
+                                "Percent of households with no one aged > 14 years speaking English",
+                                "Percent of population employed and aged > 16 working outdoors",
+                                "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                                "Percent of households with no vehicle ownership",
+                                "Percent of households with air conditioning",
+                                "Percent without tree canopy coverage",
+                                "Percent impervious surface cover"
+                              ))),
+           column(3,
+                  p(),
+                  downloadButton(outputId = "downloadData", label = "Download Selected Data")
+           )
+           
+           # ,
+           # 
+           # column(3,
+           #        p(),
+           #        downloadButton(outputId = "downloadSpatial", label = "Download Spatial Data")
+           # )
+           ),             
+         fluidRow(
+           wellPanel(DT::dataTableOutput("downloadTable"))
+         )),
 
 
 #####  Additional Page  ####
 
   navbarMenu(
     "Additional Resources",
-   tabPanel("Download your Data",
-             fluidRow(
-               column(3,
-                      selectInput("cntyDNLD",
-                                  "Select a County",
-                                  c("All",sort(unique(as.character(CHVIdata$county)))
-                                  ))
-               ),
-               column(3,
-                      selectInput("indDNLD",
-                                  "Select an Indicator",
-                                  c("All",
-                                    "Projected number of extreme heat days",
-                                    "Three-year ozone concentration exceedance",
-                                    "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
-                                    "Population living in sea level rise inundation areas",
-                                    "Percent of population currently living in very high wildfire risk areas",
-                                    "Percent of population aged 65 years or older",
-                                    "Percent of population age less than 5 years",
-                                    "Number of Violent Crimes per 1,000 Population",
-                                    "Percent of population with a disability",
-                                    "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
-                                    "Percent of adults aged 18 - 64 without health insurance",
-                                    "Percent of households with no one aged > 14 years speaking English",
-                                    "Percent of population employed and aged > 16 working outdoors",
-                                    "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
-                                    "Percent of households with no vehicle ownership",
-                                    "Percent of households with air conditioning",
-                                    "Percent without tree canopy coverage",
-                                    "Percent impervious surface cover"
-                                  ))),
-               column(3,
-                      p(),
-               downloadButton(outputId = "downloadData", label = "Download Selected Data")
-             )),             
-            fluidRow(
-               wellPanel(DT::dataTableOutput("downloadTable"))
-    )),
-   
    tabPanel("County Profile Report",
             fluidRow(
               column(4, 
@@ -354,6 +361,11 @@ averages <- CHVIdata %>%
                       line = list(color = "#404040", width=.5)
         ),
         type = "bar",
+        hoverinfo = 'text',
+        text = ~paste('</br>', paste(tab1.df[["def"]]," - ",tab1.df[["strata"]]),
+                      '</br> County Value:', round(tab1.df[["value"]],2),
+                      '</br> State Average:', round(tab1.df[["stateAverage"]],2)),
+        
         showlegend = FALSE
       ) %>%
       layout(margin = list(l = 300),
@@ -529,6 +541,11 @@ averages <- CHVIdata %>%
                     line = list(color = "#404040", width=.5)
       ),
       type = "bar",
+      hoverinfo = 'text',
+      text = ~paste('</br> County:',tab2.df[["County"]],
+                    '</br> Region:', tab2.df[["Region"]],
+                    '</br> Indicator:', round(tab2.df[["Mean"]],2), tab2.df[["defShort"]],
+                    '</br> State Average:', round(averages$stateAverage[averages$def == input$ind & averages$strata == input$strt],2)),
       showlegend = FALSE
     ) %>%
       layout(
@@ -604,7 +621,7 @@ averages <- CHVIdata %>%
                                    ifelse(tri[["vulnerability"]] == 4, "rgba(253,174,97, 0.7)",
                                           ifelse(tri[["vulnerability"]] == 5, "rgba(244,109,67, 0.9)", "rgba(215,48,39, 1)"))))
     
-    tri[["size"]] <- ntile(tri[["Population"]],20)
+    tri[["size"]] <- ntile(tri[["Population"]],25)
     
     
     # left_join({
@@ -636,15 +653,15 @@ averages <- CHVIdata %>%
       x =  ~ round(tri[[5]],2),
       y =  ~ round(tri[[7]],2),
       hoverinfo = 'text',
-      text = ~paste('</br> County ',tri[["county"]],
-                    '</br> Population: ',format(tri[["Population"]], big.mark = ","),
-                    '</br> Exposure: ', round(tri[[5]],2), " ", names(tri)[5],
-                    '</br> Sensitivity: ', round(tri[[7]],2), " ", names(tri)[7]),
+      text = ~paste('</br> County',tri[["county"]],
+                    '</br> Population:',format(tri[["Population"]], big.mark = ","),
+                    '</br> Exposure:', round(tri[[5]],2), names(tri)[5],
+                    '</br> Sensitivity:', round(tri[[7]],2),  names(tri)[7]),
       showlegend = FALSE
     ) %>%
       add_markers(type = 'scatter', 
                   mode = 'markers',
-                  size = ~tri[["Population"]]+35,
+                  size = ~tri[["Population"]]+50,
                   marker = list(color = tri[["sign"]], 
                                 size = tri[["size"]]*25,   
                                 line = list(color = 'rgba(99,99,99, .8)',width = 0.5))) %>%
@@ -798,6 +815,23 @@ averages <- CHVIdata %>%
     }
     
   )
+  
+  
+  # ##### Download the kml of the selected data (download tab)  ######  
+  # output$downloadSpatial <- downloadHandler(
+  #   filename = function () {
+  #     paste0("selectedCHVIdata.kml")
+  #   },
+  #   
+  #   content = function(file) {
+  #    
+  #     left_join(counties, data.dnld()) %>% st_transform(crs = 4326) %>% 
+  #       st_write(dsn = file)
+  #     
+  #   }
+  #   
+  # )
+  
   
   
   ##### generate (download tab) Table ######  

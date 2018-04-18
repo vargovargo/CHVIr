@@ -58,6 +58,54 @@ CHVIdata <- left_join(x = CHVIdata, y = {
 )
 
 
+narratives <- data.frame(def = c("Percent of households with air conditioning", 
+                                 "Percent without tree canopy coverage", 
+                                 "Percent of population age less than 5 years", 
+                                 "Number of Violent Crimes per 1,000 Population",
+                                 "Percent of population with a disability", 
+                                 "High School or Greater Educational Attainment in the Population Aged 25 Years and Older", 
+                                 "Percent of population aged 65 years or older", 
+                                 "Projected number of extreme heat days", 
+                                 "Percent impervious surface cover", 
+                                 "Percent of adults aged 18 - 64 without health insurance", 
+                                 "Percent of households with no one aged > 14 years speaking English", 
+                                 "Percent of population employed and aged > 16 working outdoors",  
+                                 "Three-year ozone concentration exceedance", 
+                                 "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                 "Overall, concentrated, and child (0 to 18 years of age) poverty rate", 
+                                 "Population living in sea level rise inundation areas", 
+                                 "Percent of households with no vehicle ownership", 
+                                 "Percent of population currently living in very high wildfire risk areas"
+                                 ),
+                         narrativeLink = c("https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/AirConditioning_797_Narrative_12-14-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_TreeCanopy_458_Narrative_12-5-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Children0to4_788_Narrative_11-8-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_Crime_752-Narrative_Examples-10-30-15.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Disability_Narrative_795_11-16-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Educ_attain_HS_Narrative_Examples4-28-13.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Elderly_789_Narrative_11-9-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_ExtremeHeat_Narrative_03-29-2017.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/ImperviousSurfaces_423_Narrative_12-2-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Insurance_187_Narrative_11-29-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_LinguisticIsolation_Narrative_11-15-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_OutdoorsWorkers_Narrative_790_12-5-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Ozone_801_Narrative_11-8-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_PM25_776_Narrative_8-1-2017.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_PovertyRate_754_Narrative_Examples11-5-13rev3-12-14.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Sealevelrise_Narrative_11-1-2016.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/CarOwnership_37_Narrative_9-6-16.pdf",
+                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/WildfireZone_786_Narrative_11-8-2016.pdf"
+                                           
+                                           )
+
+  
+  
+  
+  
+)
+
+
+
 ##### Define UI for application that draws a histogram #####
 ui <-  fluidPage(
     div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
@@ -111,7 +159,7 @@ tabPanel(
                          c(sort(unique(as.character(CHVIdata$county)))
                          ))
              ),
-      column(5,
+      column(3,
              selectInput("ind",
                          "Select an Indicator",
                          c("Projected number of extreme heat days",
@@ -135,7 +183,10 @@ tabPanel(
                          ))),
       column(3,
              uiOutput("chooseStrata")
-           )
+           ),
+      column(3, 
+             p(uiOutput("downloadNarrative"))
+             )
       
     
   ),
@@ -172,7 +223,10 @@ tabPanel(
                                   "Percent of households with no one aged > 14 years speaking English",
                                   "Percent of population employed and aged > 16 working outdoors",
                                   "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
-                                  "Percent of households with no vehicle ownership"
+                                  "Percent of households with no vehicle ownership",
+                                  "Percent of households with air conditioning",
+                                  "Percent without tree canopy coverage",
+                                  "Percent impervious surface cover"
                                 )))#,
              # column(3,
              #        selectInput("capacity",
@@ -602,13 +656,13 @@ averages <- CHVIdata %>%
     } %>% left_join({
       
       CHVIdata %>% 
-        filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric =="est") %>%
+        filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none", "population-weighted") & metric =="est") %>%
         mutate(sensTer = ntile(value, 3)) %>%
         select(county, climReg, COUNTYFI_1, def, value, sensTer) %>% 
         spread(key = def, value = value) %>% 
         left_join({
           CHVIdata %>%
-            filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none") & metric == "denmntr") %>%
+            filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none", "population-weighted") & metric == "denmntr") %>%
             select(county, value)
         }) %>%
         rename(Population = value)
@@ -861,11 +915,15 @@ averages <- CHVIdata %>%
   
   
   output$downloadCHPR <- renderUI({ 
-    HTML(paste0("<a href =", links$CHPR.Link[links$County %in% c(input$cntyCHPR, paste0(input$cntyCHPR," "))],">Download County Health Profile</a>"))
+    HTML(paste0('<a href =', links$CHPR.Link[links$County %in% c(input$cntyCHPR, paste0(input$cntyCHPR," "))],' target="_blank">Download County Health Profile</a>'))
   })
   
   output$downloadCHPR1 <- renderUI({ 
-    HTML(paste0("<a href =", links$CHPR.Link[links$County %in% c(input$cnty1, paste0(input$cnty1," "))],">Download County Health Profile</a>"))
+    HTML(paste0('<a href =', links$CHPR.Link[links$County %in% c(input$cnty1, paste0(input$cnty1," "))],' target="_blank">Download County Health Profile</a>'))
+  })
+  
+  output$downloadNarrative <- renderUI({ 
+    HTML(paste0('<a href =', narratives$narrativeLink[narratives$def == input$ind],' target="_blank">Download the Narrative the Describes this Indicator</a>'))
   })
   
   

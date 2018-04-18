@@ -118,8 +118,8 @@ ui <-  fluidPage(
   navbarPage(position = "fixed-top", 
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
              theme = shinytheme("flatly"),
-             title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" #,
-                                   # img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHIViz/CCHEPbannerLong.gif", style = "position: relative; top: -3px; right: 0px;")
+             title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
+                                   ,img(src="https://pdop.shinyapps.io/ODdash_v1/_w_461d723f/CDPHLogo4.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
                                    )),
              
              tabPanel("Single County",
@@ -923,7 +923,7 @@ averages <- CHVIdata %>%
   })
   
   output$downloadNarrative <- renderUI({ 
-    HTML(paste0('<a href =', narratives$narrativeLink[narratives$def == input$ind],' target="_blank">Download the Narrative the Describes this Indicator</a>'))
+    HTML(paste0('<a href =', narratives$narrativeLink[narratives$def == input$ind],' target="_blank">Learn more about this Indicator</a>'))
   })
   
   

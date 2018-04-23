@@ -224,7 +224,6 @@ tabPanel(
                                   "Percent of population employed and aged > 16 working outdoors",
                                   "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
                                   "Percent of households with no vehicle ownership",
-                                  "Percent of households with air conditioning",
                                   "Percent without tree canopy coverage",
                                   "Percent impervious surface cover"
                                 )))#,
@@ -721,9 +720,8 @@ averages <- CHVIdata %>%
                                 line = list(color = 'rgba(99,99,99, .8)',width = 0.5))) %>%
       add_text(type = 'scatter',mode = 'text', text = tri[["county"]], textposition = 'top right',
                 textfont = list(
-                  family = "sans serif",
-                  size = 8,
-                  color = toRGB("grey20"))) %>%
+                  size = 10,
+                  color = toRGB("grey40"))) %>%
       layout(margin = list(l = 50),
              xaxis = list(
                title = names(tri)[5],

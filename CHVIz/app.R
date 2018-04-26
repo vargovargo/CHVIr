@@ -121,7 +121,7 @@ ui <-  fluidPage(
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
              theme = shinytheme("flatly"),
              title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
-                                   ,img(src="/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
+                                   ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
                                    )),
              
              tabPanel("Single County",
@@ -567,6 +567,13 @@ average <- eventReactive(c(input$ind, input$strt), {
       )
       
       
+      pal2 <- colorQuantile(
+        palette = "Blues",
+        n = 10,
+        reverse = FALSE,
+        domain = data.tab2()$est
+      )
+      
       mapTemp %>%
         leaflet()  %>% 
         addProviderTiles(providers$CartoDB.Positron) %>% 
@@ -578,11 +585,29 @@ average <- eventReactive(c(input$ind, input$strt), {
           fillColor = ~ pal(est),
           highlightOptions = highlightOptions(color = "white", weight = 2,
                                               bringToFront = TRUE),
-          label = ~est,
+          label = ~mapTemp$est,
           popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
                          round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
-                         ". The state average is ", round(average(),1))
-        )  # %>%
+                         ". The state average is ", round(average(),1)),
+                         group="County Cutpoints") %>% 
+            addPolygons(
+              color = "#444444",
+              weight = 1,
+              smoothFactor = 0.1,
+              fillOpacity = 0.6,
+              fillColor = ~ pal2(est),
+              highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                  bringToFront = TRUE),
+              label = ~mapTemp$est,
+              popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
+                             round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
+                             ". The state average is ", round(average(),1)),
+              group="State Cutpoints")  %>%
+          addLayersControl(
+            baseGroups = c("County Cutpoints", "State Cutpoints"),
+            options = layersControlOptions(collapsed = TRUE)
+          ) 
+          
         # addLegend("topright",
         #           pal = pal,
         #           values = ~ mapTemp$est,

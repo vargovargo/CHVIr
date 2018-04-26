@@ -1,13 +1,12 @@
 name: CHIViz
-title: CHIViz
+title: CHVIz
 username:
 account: vargo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 296846
-bundleId: 1326587
+bundleId: 1340174
 url: https://vargo.shinyapps.io/CHIViz/
-when: 1524094428.99012
+when: 1524720247.2285
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: CCHEPbanner.png|CCHEPbannerLong.gif|CCHEPbannerLong.png|cdph2434 Content Filter Special Access_vargo.doc|CDPHSiteRequestForm_vargo.docx

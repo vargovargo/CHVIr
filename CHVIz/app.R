@@ -121,7 +121,7 @@ ui <-  fluidPage(
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
              theme = shinytheme("flatly"),
              title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
-                                   ,img(src="https://pdop.shinyapps.io/ODdash_v1/_w_461d723f/CDPHLogo4.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
+                                   ,img(src="/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
                                    )),
              
              tabPanel("Single County",

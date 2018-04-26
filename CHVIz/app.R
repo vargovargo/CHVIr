@@ -10,11 +10,13 @@ library(DT)
 library(plotly)
 
 links <-read.csv("CHPRlinks.csv", header=T)
-CHVIdata <- read.csv("chviCountyTidy.csv", header=T, stringsAsFactors = FALSE) 
+CHVIdata <- readRDS("chviCountyTidyRace.RDS") 
+CHVItracts <- readRDS("chviTractTidy.RDS")
 counties <- st_read("counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
+tracts <- st_read("tracts.GeoJSON", stringsAsFactors = F) %>% st_transform(crs = 4326) %>%
+  mutate(COUNTYFI_1 = as.character(paste0(STATE, COUNTY)))
 
 CHVIdata$def <- ifelse(CHVIdata$def == "percent impervious surface cover", "Percent impervious surface cover", CHVIdata$def)
-
 CHVIdata <- left_join(x = CHVIdata, y = {
   data.frame(def= c("Percent of households with air conditioning", 
                     "Percent without tree canopy coverage", 
@@ -274,6 +276,22 @@ tabPanel("Download your Data",
                                 "Percent without tree canopy coverage",
                                 "Percent impervious surface cover"
                               ))),
+          # column(2,
+          #         selectInput("raceDNLD",
+          #                     "Race",
+          #                     c("Total",
+          #                       "AIAN",
+          #                       "Asian",
+          #                       "AfricanAm",
+          #                       "Latino",
+          #                       "NHOPI",
+          #                       "White",
+          #                       "Multiple",
+          #                       "Other")
+          #  )),  
+          # column(2,
+          #              uiOutput("chooseStrataDNLD") # this criteria and race were creating problems in the queries
+          #  ), 
            column(3,
                   p(),
                   downloadButton(outputId = "downloadData", label = "Download Selected Data")
@@ -338,62 +356,26 @@ tabPanel("Download your Data",
 server <- function(input, output, session) {
 
 averages <- CHVIdata %>%
-    filter(metric =="est") %>%
     group_by(def, ind, strata) %>%
-    summarise(stateAverage = mean(value, na.rm=T))
-  
-##### create reactive table for single indicator #####
-  
-  data.tab2 <- reactive({
-
-      CHVIdata %>%
-      mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
-      filter(def == input$ind & strata == input$strt ) %>%
-      spread(key = metric, value = value) %>%
-      rename(
-        County = county,
-        Region = climReg,
-        Definition = def,
-        Mean = est, 
-        Numerator = numratr,
-        Denominator = denmntr) %>%
-      mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
-             selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], 
-                                paste0("In ",CHVIdata$climReg[CHVIdata$county == input$cnty][1]," region"),
-                               "Outside region"),
-             countyColor = ifelse(County == input$cnty,"rgba(165,15,21, 1)", 
-                                  ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1],
-                                         "rgba(251,106,74, 0.5)",
-                                         "rgba(247,247,247, 0.3)")))
-   
- })
-  
-  
-##### generate strata selection dropdown #####
-  
-  output$chooseStrata <- renderUI({
-    selectInput("strt",
-                "Strata",{
-                  
-            unique(
-                 as.character({CHVIdata %>% filter(def == input$ind)}$strata)
-                   )
-               
-                }
-            )
-  })
+    summarise(stateAverage = mean(est, na.rm=T))
   
 
-  
 #####  reactive table tab 1 #####
   
   data.tab1 <- eventReactive(input$cnty1,{
     
-    CHVIdata %>% filter(county == input$cnty1 & metric == "est") %>% 
+    CHVIdata %>% filter(county == input$cnty1 &  race == "Total") %>% 
       left_join(averages) %>% 
-      mutate(label = paste0(defShort," - ", strata),
-             ratio = value/stateAverage,
-             category = ifelse(ratio < 0.9, "below CA average",
+      rename(County = county, 
+             Region = climReg, 
+             Indicator = def, 
+             Strata = strata,
+             Value = est, 
+             CA_avg = stateAverage
+      ) %>%
+      mutate(label = paste0(defShort, " - ", Strata),
+             ratio = Value/CA_avg,
+             Category = ifelse(ratio < 0.9, "below CA average",
                                ifelse(ratio > 1.1, "above CA average","around CA average")),
              fillColor = ifelse(ratio < 0.9, "#91bfdb",
                                ifelse(ratio > 1.1, "#fc8d59","#ffffbf")))
@@ -415,13 +397,15 @@ averages <- CHVIdata %>%
         ),
         type = "bar",
         hoverinfo = 'text',
-        text = ~paste('</br>', paste(tab1.df[["def"]]," - ",tab1.df[["strata"]]),
-                      '</br> County Value:', round(tab1.df[["value"]],2),
-                      '</br> State Average:', round(tab1.df[["stateAverage"]],2)),
+        text = ~paste('</br>', paste(tab1.df[["Indicator"]]," - ",tab1.df[["Strata"]]),
+                      '</br> County Value:', round(tab1.df[["Value"]],2),
+                      '</br> State Average:', round(tab1.df[["CA_avg"]],2)),
         
         showlegend = FALSE
       ) %>%
-      layout(margin = list(l = 300),
+      layout(title = paste0('County Snapshot for ',tab1.df[["County"]], ' County -   \n (shows how the values in the county compare to the state average)' ),
+             margin = list(l = 300,
+                           t = 70),
              xaxis = list(
                title = "Ratio to State Average",
                size = 4,
@@ -473,21 +457,56 @@ averages <- CHVIdata %>%
   output$countyTable <- DT::renderDataTable({DT::datatable(
     
     data.tab1() %>%
-      select(county, climReg, def, strata, value, stateAverage, category) %>%
-      rename(County = county, 
-             Region = climReg, 
-             Indicator = def, 
-             Strata = strata,
-             Valule = value, 
-             CA_avg = stateAverage, 
-             Category =category
-             ), 
+      select(County, Region, Indicator, Strata, Value, CA_avg, Category), 
     options=list(pageLength = 25)
   )  %>% DT::formatRound(c(5,6), 1)
     
   })
   
- 
+  
+  
+##### generate strata selection dropdown #####
+  
+  output$chooseStrata <- renderUI({
+    selectInput("strt",
+                "Strata",{
+                  
+                  unique(
+                    as.character({CHVIdata %>% filter(def == input$ind)}$strata)
+                  )
+                  
+                }
+    )
+  })
+  
+  
+  
+##### create reactive table for single indicator #####
+  
+  data.tab2 <- reactive({
+    
+    CHVIdata %>%
+      mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
+      filter(def == input$ind & strata == input$strt & race == "Total") %>%
+      rename(
+        County = county,
+        Region = climReg,
+        Definition = def,
+        Mean = est, 
+        Numerator = numratr,
+        Denominator = denmntr) %>%
+      mutate(selCounty = ifelse(County == input$cnty, "yes", "no"),
+             selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], 
+                                paste0("In ",CHVIdata$climReg[CHVIdata$county == input$cnty][1]," region"),
+                                "Outside region"),
+             countyColor = ifelse(County == input$cnty,"rgba(165,15,21, 1)", 
+                                  ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1],
+                                         "rgba(251,106,74, 0.5)",
+                                         "rgba(247,247,247, 0.3)")))
+    
+  })
+  
+  
 ##### generate table of the data (tab 2) #####
   
   output$table <- DT::renderDataTable({DT::datatable(
@@ -505,45 +524,71 @@ averages <- CHVIdata %>%
       )) %>% DT::formatRound(c(5:9), 1)
   })
   
+ 
+##### Census tract data ######
   
+ tractData <- reactive({
+   
+   CHVItracts %>% 
+     filter(def == input$ind & strata == input$strt)  %>%
+    mutate(ct10 = as.character(paste0('0',ct10))) 
+  
+ })
+  
+ 
+selectedFIPS <- eventReactive(input$cnty, {
+   
+   as.character(paste0("0",CHVIdata$COUNTYFI_1[CHVIdata$county == input$cnty][1]))
+   
+})
+
+
+average <- eventReactive(c(input$ind, input$strt), {
+  
+  as.numeric({averages %>% filter(def == input$ind & strata == input$strt) %>%
+      ungroup() %>% select(stateAverage)}[1])
+})
   
 ##### generate map (tab 2) #####
   
   output$map <- renderLeaflet({
     if (input$ind != "All") {
       
-      mapTemp <- left_join(counties, data.tab2()) 
+      mapTemp <- tracts %>% 
+        filter(COUNTYFI_1 == selectedFIPS()) %>%
+        left_join(tractData()) 
+        
       
       pal <- colorQuantile(
         palette = "RdYlBu",
-        n = 5,
+        n = 10,
         reverse = TRUE,
-        domain = mapTemp$Mean
+        domain = mapTemp$est
       )
+      
       
       mapTemp %>%
         leaflet()  %>% 
-        addTiles() %>%
+        addProviderTiles(providers$CartoDB.Positron) %>% 
         addPolygons(
           color = "#444444",
           weight = 1,
           smoothFactor = 0.1,
           fillOpacity = 0.6,
-          fillColor = ~ pal(Mean),
+          fillColor = ~ pal(est),
           highlightOptions = highlightOptions(color = "white", weight = 2,
                                               bringToFront = TRUE),
-          label = ~ (mapTemp$County),
-          popup = paste0("This is ",mapTemp$County," County. The ",mapTemp$Definition," in this county is ",
-                         round(mapTemp$Mean[mapTemp$County == mapTemp$County]),". The state average is ", round(mean(mapTemp$Mean, na.rm=T),2))
-        ) %>%
-        addLegend("topright",
-                  pal = pal,
-                  values = ~ Mean,
-                  opacity = 1,
-                  labFormat = labelFormat(),
-                  title = input$ind 
-        ) %>%
-        clearControls()
+          label = ~est,
+          popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
+                         round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
+                         ". The state average is ", round(average(),1))
+        )  # %>%
+        # addLegend("topright",
+        #           pal = pal,
+        #           values = ~ mapTemp$est,
+        #           opacity = .4,
+        #           title = input$ind 
+        # ) 
       
     }
     
@@ -602,7 +647,7 @@ averages <- CHVIdata %>%
       showlegend = FALSE
     ) %>%
       layout(
-        title = paste0(input$cnty," county (red) and its region (pink) compared to others in the state -   \n shown for ",input$ind, ".") ,
+        title = paste0(input$cnty," county (red) and its region (pink) compared to others in the state -   \n shown for ",input$ind) ,
         margin = list(l = 130,
                       t = 70),
         xaxis = list(
@@ -648,23 +693,23 @@ averages <- CHVIdata %>%
     
     
     tri <- {CHVIdata %>% 
-        filter(def  == input$exposure & strata %in% c("2085", 2085,"none") & metric =="est") %>%
-        mutate(expTer = ntile(value, 3)) %>%
-        select(county, climReg, COUNTYFI_1, def, value, expTer) %>% 
-        spread(key = def, value = value)
+        filter(def  == input$exposure & strata %in% c("2085", 2085, "none") & race == "Total") %>%
+        mutate(expTer = ntile(est, 3)) %>%
+        select(county, climReg, COUNTYFI_1, def, est, expTer) %>% 
+        spread(key = def, value = est)
     } %>% left_join({
       
       CHVIdata %>% 
-        filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none", "population-weighted") & metric =="est") %>%
-        mutate(sensTer = ntile(value, 3)) %>%
-        select(county, climReg, COUNTYFI_1, def, value, sensTer) %>% 
-        spread(key = def, value = value) %>% 
+        filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none", "population-weighted") & race =="Total") %>%
+        mutate(sensTer = ntile(est, 3)) %>%
+        select(county, climReg, COUNTYFI_1, def, est, sensTer) %>% 
+        spread(key = def, value = est) %>% 
         left_join({
           CHVIdata %>%
-            filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none", "population-weighted") & metric == "denmntr") %>%
-            select(county, value)
+            filter(def  == "Percent of population aged 65 years or older" & race == "Total") %>%
+            select(county, denmntr)
         }) %>%
-        rename(Population = value)
+        rename(Population = denmntr)
     }) %>%  
       mutate(Population = as.numeric(as.character(Population)),
              vulnerability = factor(sensTer + expTer))
@@ -674,7 +719,7 @@ averages <- CHVIdata %>%
                                    ifelse(tri[["vulnerability"]] == 4, "rgba(253,174,97, 0.7)",
                                           ifelse(tri[["vulnerability"]] == 5, "rgba(244,109,67, 0.9)", "rgba(215,48,39, 1)"))))
     
-    tri[["size"]] <- ntile(tri[["Population"]],25)
+    tri[["size"]] <- ntile(tri[["Population"]],29)
     
     
     # left_join({
@@ -722,7 +767,9 @@ averages <- CHVIdata %>%
                 textfont = list(
                   size = 10,
                   color = toRGB("grey40"))) %>%
-      layout(margin = list(l = 50),
+      layout(title = paste0('Combined Vulnerabiltity from Exposure (',names(tri)[5], ')    \n and Sensitivity (',names(tri)[7],")") ,
+             margin = list(l = 50,
+                           t = 70),
              xaxis = list(
                title = names(tri)[5],
                autotick = TRUE,
@@ -767,24 +814,24 @@ averages <- CHVIdata %>%
   
 ##### Strata Interface for Download tab #####
   
-  output$chooseStrataDNLD <- renderUI({
-    
-    if(input$indDNLD =="All"){
-      return()
-    } else {
-      
-    selectInput("strtDNLD",
-                "Strata",{
-                  unique(
-                    as.character({CHVIdata %>% filter(def == input$indDNLD)}$strata)
-                  )
-                  
-                }
-    )}
-  })
+  # output$chooseStrataDNLD <- renderUI({
+  #   
+  #   if(input$indDNLD =="All"){
+  #     return()
+  #   } else {
+  #     
+  #   selectInput("strtDNLD",
+  #               "Strata",{
+  #                 unique(
+  #                   as.character({CHVIdata %>% filter(def == input$indDNLD)}$strata)
+  #                 )
+  #                 
+  #               }
+  #   )}
+  # })
+  # 
   
-  
-  
+
   data.dnld <- eventReactive(c(input$cntyDNLD, input$indDNLD),{
     
     if(input$cntyDNLD  == "All" & input$indDNLD != "All") {
@@ -792,52 +839,56 @@ averages <- CHVIdata %>%
       CHVIdata %>%
         mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
         filter(def == input$indDNLD) %>%
-        spread(key = metric, value = value) %>%
         rename(
           County = county,
           Region = climReg,
           Definition = def,
           Mean = est, 
           Numerator = numratr,
-          Denominator = denmntr)
+          Denominator = denmntr,
+          Strata = strata, 
+          Race = race)
     } else { if(input$cntyDNLD  != "All" & input$indDNLD != "All") {
       
       CHVIdata %>%
         mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
         filter(def == input$indDNLD & county == input$cntyDNLD) %>%
-        spread(key = metric, value = value) %>%
         rename(
           County = county,
           Region = climReg,
           Definition = def,
           Mean = est, 
           Numerator = numratr,
-          Denominator = denmntr)
+          Denominator = denmntr,
+          Strata = strata, 
+          Race = race)
     } else { if(input$cntyDNLD  != "All" & input$indDNLD == "All") {
       
       CHVIdata %>%
         mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
         filter(county == input$cntyDNLD) %>%
-        spread(key = metric, value = value) %>%
         rename(
           County = county,
           Region = climReg,
           Definition = def,
           Mean = est, 
           Numerator = numratr,
-          Denominator = denmntr)
+          Denominator = denmntr,
+          Strata = strata, 
+          Race = race)
     } else {   
       
       CHVIdata %>%
         mutate(COUNTYFI_1 = as.character(paste0("0",COUNTYFI_1))) %>%
-        spread(key = metric, value = value) %>%
         rename(
           County = county,
           Region = climReg,
           Definition = def,
           Mean = est, 
           Numerator = numratr,
-          Denominator = denmntr)
+          Denominator = denmntr,
+          Strata = strata, 
+          Race = race)
     } } }
     
   })
@@ -856,7 +907,8 @@ averages <- CHVIdata %>%
             County,
             Region,
             Definition,
-            strata,
+            Strata,
+            Race,
             Mean,
             LL95,
             UL95,
@@ -895,7 +947,8 @@ averages <- CHVIdata %>%
         County,
         Region,
         Definition,
-        strata,
+        Strata,
+        Race,
         Mean,
         LL95,
         UL95,
@@ -903,7 +956,8 @@ averages <- CHVIdata %>%
         Denominator
       ), 
     options=list(pageLength = 25)
-  )  %>% DT::formatRound(c(5:9), 1)
+  )  %>% DT::formatRound(c(6:8), 1) %>%
+      DT::formatRound(c(9:10), 0)
     
   })
   

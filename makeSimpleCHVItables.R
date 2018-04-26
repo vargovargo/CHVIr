@@ -228,7 +228,7 @@ simplifyCHVI <- function(indicator = "indicator") {
   #   st_write(dsn = normalizePath(paste0(workingPath,"tables/CHVI_",indicator,"_tract.shp")), delete_layer=TRUE)
   
   temp2 <- temp %>%
-    filter(geotype == "CO", race_eth_name == "Total")  %>% # here's where we can filter the data further
+    filter(geotype == "CO")  %>% # here's where we can filter the data further
     select(
       ind_definition,
       county_name,
@@ -332,7 +332,7 @@ temp$reportyear <- as.character(as.numeric(temp$reportyear))
 
 # parse and write  COUNTY data
 temp2 <- temp %>%
-  filter(geotype == "CO", race_eth_name == "Total")  %>% # here's where we can filter the data further
+  filter(geotype == "CO")  %>% # here's where we can filter the data further
   select(
     ind_definition,
     county_name,
@@ -408,7 +408,7 @@ strat <- '2050' # use 2050 or 2085
 
 # parse and write 2050 COUNTY data
 temp2 <- temp %>%
-  filter(geotype == "CO", race_eth_name == "Total", reportyear == strat)  %>% # here's where we can filter the data further
+  filter(geotype == "CO", reportyear == strat)  %>% # here's where we can filter the data further
   select(
     ind_definition,
     county_name,
@@ -444,7 +444,7 @@ strat <- '2085' # use 2050 or 2085
 
 # parse and write 2085 COUNTY data
 temp2 <- temp %>%
-  filter(geotype == "CO", race_eth_name == "Total", reportyear == strat)  %>% # here's where we can filter the data further
+  filter(geotype == "CO", reportyear == strat)  %>% # here's where we can filter the data further
   select(
     ind_definition,
     county_name,
@@ -1183,7 +1183,7 @@ strat <- '2009-2013'
 
 # parse and write pop-weighted TRACT data
 temp2 <- temp %>%
-  filter(geotype == "CT", race_eth_name == "Total", reportyear == strat)  %>% # here's where we can filter the data further
+  filter(geotype == "CT", reportyear == strat)  %>% # here's where we can filter the data further
   select(
     ind_definition,
     county_name,
@@ -1208,7 +1208,7 @@ temp2 %>% write.csv(paste0(workingPath, "tables/tracts/CHVI_", indicator, "_trac
 
 # parse and write pop-weighted COUNTY data
 temp2 <- temp %>%
-  filter(geotype == "CO", race_eth_name == "Total", reportyear == strat)  %>% # here's where we can filter the data further
+  filter(geotype == "CO", reportyear == strat)  %>% # here's where we can filter the data further
   select(
     ind_definition,
     county_name,
@@ -1694,13 +1694,6 @@ for (file in files) {
 countyTab <- countyCHVIs %>%
   mutate(ind_strt = paste0(ind, "_", strata),
          COUNTYFI_1 = as.character(paste0("0", COUNTYFI_1))) %>%
-  gather(est,
-         LL95,
-         UL95,
-         numratr,
-         denmntr,
-         key = metric,
-         value = value) %>%
   select(-region) %>%
   left_join(read.csv(
     url(
@@ -1768,14 +1761,14 @@ CHVIcounties %>%
     paste0(workingPath, "shapefiles/CHVI_indicators_county.shp")
   ), delete_layer = TRUE)
 
-### combine all the file for TRACT level
+### combine all the files for TRACT level
 
 rm(list = ls())
 
 library(tidyverse)
 library(sf)
 
-workingPath <- "~/CHVI_copy/data/" # work local
+#workingPath <- "~/CHVI_copy/data/" # work local
 workingPath <-"//phdeorlcsrvip01/Crossbranch/CDC_BRACE/Data/CHVI-CHPR Data/data/" # work on network
 
 setwd(paste0(workingPath, "tables/tracts/"))
@@ -1803,13 +1796,6 @@ for (file in files) {
 tractTab <- tractCHVIs %>%
   mutate(ind_strt = paste0(ind, "_", strata),
          ct10 = as.character(paste0("0", ct10))) %>%
-  gather(est,
-         LL95,
-         UL95,
-         numratr,
-         denmntr,
-         key = metric,
-         value = value) %>%
   select(-region) %>%
   left_join(read.csv(
     url(

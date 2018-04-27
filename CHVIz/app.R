@@ -124,6 +124,26 @@ ui <-  fluidPage(
                                    ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
                                    )),
              
+             tabPanel("About",
+                      fluidRow(
+                        column(
+                          6,
+                          includeMarkdown("about.md"),
+                          tags$br(),
+                          img(
+                            class = "img-polaroid",
+                            src = "https://www.cdph.ca.gov/Programs/OHE/PublishingImages/Policy%20Unit/CDPH-Climate-change-and-health-impacts-diagram.png",
+                            width = 900,
+                            alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
+                          )
+                        )
+                      )),
+             
+             
+             
+             
+             
+             
              tabPanel("Single County",
     # Create a new Row in the UI for selectInputs
 
@@ -306,47 +326,34 @@ tabPanel("Download your Data",
            ),             
          fluidRow(
            wellPanel(DT::dataTableOutput("downloadTable"))
-         )),
+         ))
 
 
 #####  Additional Page  ####
 
-  navbarMenu(
-    "Additional Resources",
-   tabPanel("County Profile Report",
-            fluidRow(
-              column(4, 
-                     selectInput("cntyCHPR",
-                                 "Select Your County",
-                                 c(sort(unique(as.character(CHVIdata$county)))
-                                 ))
-              )),
-            fluidRow(
-              column(
-                4,
-                p(uiOutput("downloadCHPR"))
-              )
-            )),
-   
-    
-    tabPanel("About",
-             fluidRow(
-               column(
-                 6,
-                 includeMarkdown("about.md"),
-                 tags$br(),
-                 img(
-                   class = "img-polaroid",
-                   src = "https://www.cdph.ca.gov/Programs/OHE/PublishingImages/Policy%20Unit/CDPH-Climate-change-and-health-impacts-diagram.png",
-                   width = 700,
-                   alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
-                 )
-               )
-             ))
-    
-    
-    
-  )
+  # navbarMenu(
+  #   "Additional Resources",
+  #  tabPanel("County Profile Report",
+  #           fluidRow(
+  #             column(4, 
+  #                    selectInput("cntyCHPR",
+  #                                "Select Your County",
+  #                                c(sort(unique(as.character(CHVIdata$county)))
+  #                                ))
+  #             )),
+  #           fluidRow(
+  #             column(
+  #               4,
+  #               p(uiOutput("downloadCHPR"))
+  #             )
+  #           ))
+  #  
+  #   
+  #  
+  #   
+  #   
+  #   
+  # )
 #####  Finish Additional  #####
 
 )
@@ -531,7 +538,7 @@ averages <- CHVIdata %>%
    
    CHVItracts %>% 
      filter(def == input$ind & strata == input$strt)  %>%
-    mutate(ct10 = as.character(paste0('0',ct10))) 
+     mutate(ct10 = as.character(paste0('0',ct10))) 
   
  })
   
@@ -552,26 +559,24 @@ average <- eventReactive(c(input$ind, input$strt), {
 ##### generate map (tab 2) #####
   
   output$map <- renderLeaflet({
-    if (input$ind != "All") {
-      
+    
       mapTemp <- tracts %>% 
         filter(COUNTYFI_1 == selectedFIPS()) %>%
         left_join(tractData()) 
-        
       
-      pal <- colorQuantile(
+      pal <- colorBin(
         palette = "RdYlBu",
-        n = 10,
+        bins = 8,
         reverse = TRUE,
-        domain = mapTemp$est
+        domain = NULL
       )
       
-      
-      pal2 <- colorQuantile(
+      pal2 <- colorBin(
         palette = "Blues",
-        n = 10,
+        bins = 4,
         reverse = FALSE,
-        domain = data.tab2()$est
+        domain = NULL
+    
       )
       
       mapTemp %>%
@@ -585,11 +590,10 @@ average <- eventReactive(c(input$ind, input$strt), {
           fillColor = ~ pal(est),
           highlightOptions = highlightOptions(color = "white", weight = 2,
                                               bringToFront = TRUE),
-          label = ~mapTemp$est,
           popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
                          round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
                          ". The state average is ", round(average(),1)),
-                         group="County Cutpoints") %>% 
+                         group="Diverging Colors") %>% 
             addPolygons(
               color = "#444444",
               weight = 1,
@@ -598,13 +602,12 @@ average <- eventReactive(c(input$ind, input$strt), {
               fillColor = ~ pal2(est),
               highlightOptions = highlightOptions(color = "white", weight = 2,
                                                   bringToFront = TRUE),
-              label = ~mapTemp$est,
               popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
                              round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
                              ". The state average is ", round(average(),1)),
-              group="State Cutpoints")  %>%
+              group="Single Color")  %>%
           addLayersControl(
-            baseGroups = c("County Cutpoints", "State Cutpoints"),
+            baseGroups = c("Diverging Colors", "Single Color"),
             options = layersControlOptions(collapsed = TRUE)
           ) 
           
@@ -615,7 +618,6 @@ average <- eventReactive(c(input$ind, input$strt), {
         #           title = input$ind 
         # ) 
       
-    }
     
   })
   

@@ -14,3 +14,10 @@ description: first page for R Resources on CDPH User
 The [CalBRACE](bit.ly/calbrace) Project produced climate change and health vulnerability indicators for download using the link below. Each indicator includes the data in an Excel file as well as a narrative in PDF format. Each narrative describes the indicator’s significance to climate change and health, the evidence that links the indicator to health outcomes, data sources, bibliographic references, methodology, and limitations that impact the interpretation of the indicator. Examples of maps, charts, and tables are also included. We invite you to download the data and narrative files and use them to create maps, charts, and tables of your own counties and communities. 
 
 Visit [CalBRACE's website](https://www.cdph.ca.gov/Programs/OHE/Pages/CC-Health-Vulnerability-Indicators.aspx) to download details of each indicator’s significance and methods involved in its development. 
+
+
+## Latest Updates
+
+- Added race to the county data available through the __Download__ tab.
+- Census tract graphs now available for some indicators on the __Single Indicator__ tab.
+

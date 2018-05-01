@@ -1,7 +1,5 @@
-#devtools::install_github('hadley/ggplot2')
 library(shiny)
 library(tidyverse)
-library(markdown)
 library(leaflet)
 library(shinythemes)
 library(ggthemes)
@@ -78,51 +76,51 @@ narratives <- data.frame(def = c("Percent of households with air conditioning",
                                  "Population living in sea level rise inundation areas", 
                                  "Percent of households with no vehicle ownership", 
                                  "Percent of population currently living in very high wildfire risk areas"
-                                 ),
-                         narrativeLink = c("https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/AirConditioning_797_Narrative_12-14-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_TreeCanopy_458_Narrative_12-5-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Children0to4_788_Narrative_11-8-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_Crime_752-Narrative_Examples-10-30-15.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Disability_Narrative_795_11-16-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Educ_attain_HS_Narrative_Examples4-28-13.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Elderly_789_Narrative_11-9-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_ExtremeHeat_Narrative_03-29-2017.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/ImperviousSurfaces_423_Narrative_12-2-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Insurance_187_Narrative_11-29-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_LinguisticIsolation_Narrative_11-15-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_OutdoorsWorkers_Narrative_790_12-5-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Ozone_801_Narrative_11-8-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_PM25_776_Narrative_8-1-2017.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_PovertyRate_754_Narrative_Examples11-5-13rev3-12-14.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Sealevelrise_Narrative_11-1-2016.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/CarOwnership_37_Narrative_9-6-16.pdf",
-                                           "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/WildfireZone_786_Narrative_11-8-2016.pdf"
-                                           
-                                           )
+),
+narrativeLink = c("https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/AirConditioning_797_Narrative_12-14-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_TreeCanopy_458_Narrative_12-5-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Children0to4_788_Narrative_11-8-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_Crime_752-Narrative_Examples-10-30-15.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Disability_Narrative_795_11-16-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Educ_attain_HS_Narrative_Examples4-28-13.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Elderly_789_Narrative_11-9-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_ExtremeHeat_Narrative_03-29-2017.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/ImperviousSurfaces_423_Narrative_12-2-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Insurance_187_Narrative_11-29-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_LinguisticIsolation_Narrative_11-15-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_OutdoorsWorkers_Narrative_790_12-5-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Ozone_801_Narrative_11-8-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_PM25_776_Narrative_8-1-2017.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_PovertyRate_754_Narrative_Examples11-5-13rev3-12-14.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Sealevelrise_Narrative_11-1-2016.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/CarOwnership_37_Narrative_9-6-16.pdf",
+                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/WildfireZone_786_Narrative_11-8-2016.pdf"
+                  
+)
 
-  
-  
-  
-  
+
+
+
+
 )
 
 
 
 ##### Define UI for application that draws a histogram #####
 ui <-  fluidPage(
-    div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
-          titlePanel(
-            title="",
-            windowTitle="CHVIz"
-          )
-    ),
+  div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
+      titlePanel(
+        title="",
+        windowTitle="CHVIz"
+      )
+  ),
   
   navbarPage(position = "fixed-top", 
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
              theme = shinytheme("flatly"),
              title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
                                    ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
-                                   )),
+             )),
              
              tabPanel("About",
                       fluidRow(
@@ -145,229 +143,229 @@ ui <-  fluidPage(
              
              
              tabPanel("Single County",
-    # Create a new Row in the UI for selectInputs
-
-    
-#####  Select an County  #####       
-    
-    fluidRow(
-      column(3,
-             selectInput("cnty1",
-                         "Select a County",
-                         c(sort(unique(as.character(CHVIdata$county)))
-                         ))
-      ),
-      column(3,br(),
-             p(uiOutput("downloadCHPR1"))
-      )),
-    fluidRow(
-      column(9, wellPanel(plotlyOutput("plotCounty"))),
-      column(3, includeMarkdown("countyPlot.md"))),
-    wellPanel(DT::dataTableOutput("countyTable"))
-      
+                      # Create a new Row in the UI for selectInputs
+                      
+                      
+                      #####  Select an County  #####       
+                      
+                      fluidRow(
+                        column(3,
+                               selectInput("cnty1",
+                                           "Select a County",
+                                           c(sort(unique(as.character(CHVIdata$county)))
+                                           ))
+                        ),
+                        column(3,br(),
+                               p(uiOutput("downloadCHPR1"))
+                        )),
+                      fluidRow(
+                        column(9, wellPanel(plotlyOutput("plotCounty"))),
+                        column(3, includeMarkdown("countyPlot.md"))),
+                      wellPanel(DT::dataTableOutput("countyTable"))
+                      
              ),
-    
-    
-#####  Select an Indicator Tool  #####    
-   
-
-tabPanel(
-  "Single Indicator",
- 
-    fluidRow(
-      column(3,
-             selectInput("cnty",
-                         "Highlight County",
-                         c(sort(unique(as.character(CHVIdata$county)))
-                         ))
+             
+             
+             #####  Select an Indicator Tool  #####    
+             
+             
+             tabPanel(
+               "Single Indicator",
+               
+               fluidRow(
+                 column(3,
+                        selectInput("cnty",
+                                    "Highlight County",
+                                    c(sort(unique(as.character(CHVIdata$county)))
+                                    ))
+                 ),
+                 column(3,
+                        selectInput("ind",
+                                    "Select an Indicator",
+                                    c("Projected number of extreme heat days",
+                                      "Three-year ozone concentration exceedance",
+                                      "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                      "Population living in sea level rise inundation areas",
+                                      "Percent of population currently living in very high wildfire risk areas",
+                                      "Percent of population aged 65 years or older",
+                                      "Percent of population age less than 5 years",
+                                      "Number of Violent Crimes per 1,000 Population",
+                                      "Percent of population with a disability",
+                                      "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                                      "Percent of adults aged 18 - 64 without health insurance",
+                                      "Percent of households with no one aged > 14 years speaking English",
+                                      "Percent of population employed and aged > 16 working outdoors",
+                                      "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                                      "Percent of households with no vehicle ownership",
+                                      "Percent of households with air conditioning",
+                                      "Percent without tree canopy coverage",
+                                      "Percent impervious surface cover"
+                                    ))),
+                 column(3,
+                        uiOutput("chooseStrata")
+                 ),
+                 column(3, 
+                        p(uiOutput("downloadNarrative"))
+                 )
+                 
+                 
+               ),
+               
+               fluidRow(column(8,
+                               wellPanel(plotlyOutput("plot"))
+               ), 
+               column(4,
+                      wellPanel(leafletOutput("map"))
+               )),
+               wellPanel(DT::dataTableOutput("table"))
              ),
-      column(3,
-             selectInput("ind",
-                         "Select an Indicator",
-                         c("Projected number of extreme heat days",
-                           "Three-year ozone concentration exceedance",
-                           "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
-                           "Population living in sea level rise inundation areas",
-                           "Percent of population currently living in very high wildfire risk areas",
-                           "Percent of population aged 65 years or older",
-                           "Percent of population age less than 5 years",
-                           "Number of Violent Crimes per 1,000 Population",
-                           "Percent of population with a disability",
-                           "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
-                           "Percent of adults aged 18 - 64 without health insurance",
-                           "Percent of households with no one aged > 14 years speaking English",
-                           "Percent of population employed and aged > 16 working outdoors",
-                           "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
-                           "Percent of households with no vehicle ownership",
-                           "Percent of households with air conditioning",
-                           "Percent without tree canopy coverage",
-                           "Percent impervious surface cover"
-                         ))),
-      column(3,
-             uiOutput("chooseStrata")
-           ),
-      column(3, 
-             p(uiOutput("downloadNarrative"))
-             )
-      
-    
-  ),
-  
-    fluidRow(column(8,
-                    wellPanel(plotlyOutput("plot"))
-                    ), 
-             column(4,
-                    wellPanel(leafletOutput("map"))
-                    )),
-  wellPanel(DT::dataTableOutput("table"))
-),
-  tabPanel(title = "Vulnerability", 
-           fluidRow(
-             column(3,
-                    selectInput("exposure",
-                                "Exposure Indicator",
-                                c("Projected number of extreme heat days",
-                                  "Three-year ozone concentration exceedance",
-                                  "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
-                                  "Population living in sea level rise inundation areas",
-                                  "Percent of population currently living in very high wildfire risk areas"
-                                  ))
-                                ),
-             column(3,
-                    selectInput("sensitivity",
-                                "Sensitivity Indicator",
-                                c("Percent of population aged 65 years or older",
-                                  "Percent of population age less than 5 years",
-                                  "Number of Violent Crimes per 1,000 Population",
-                                  "Percent of population with a disability",
-                                  "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
-                                  "Percent of adults aged 18 - 64 without health insurance",
-                                  "Percent of households with no one aged > 14 years speaking English",
-                                  "Percent of population employed and aged > 16 working outdoors",
-                                  "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
-                                  "Percent of households with no vehicle ownership",
-                                  "Percent without tree canopy coverage",
-                                  "Percent impervious surface cover"
-                                )))#,
-             # column(3,
-             #        selectInput("capacity",
-             #                    "Adaptive Capacity Indicator",
-             #                    c("Percent of households with air conditioning",
-             #                      "Percent without tree canopy coverage",
-             #                      "Percent impervious surface cover"
-             #                      )))
+             tabPanel(title = "Vulnerability", 
+                      fluidRow(
+                        column(3,
+                               selectInput("exposure",
+                                           "Exposure Indicator",
+                                           c("Projected number of extreme heat days",
+                                             "Three-year ozone concentration exceedance",
+                                             "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                             "Population living in sea level rise inundation areas",
+                                             "Percent of population currently living in very high wildfire risk areas"
+                                           ))
+                        ),
+                        column(3,
+                               selectInput("sensitivity",
+                                           "Sensitivity Indicator",
+                                           c("Percent of population aged 65 years or older",
+                                             "Percent of population age less than 5 years",
+                                             "Number of Violent Crimes per 1,000 Population",
+                                             "Percent of population with a disability",
+                                             "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                                             "Percent of adults aged 18 - 64 without health insurance",
+                                             "Percent of households with no one aged > 14 years speaking English",
+                                             "Percent of population employed and aged > 16 working outdoors",
+                                             "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                                             "Percent of households with no vehicle ownership",
+                                             "Percent without tree canopy coverage",
+                                             "Percent impervious surface cover"
+                                           )))#,
+                        # column(3,
+                        #        selectInput("capacity",
+                        #                    "Adaptive Capacity Indicator",
+                        #                    c("Percent of households with air conditioning",
+                        #                      "Percent without tree canopy coverage",
+                        #                      "Percent impervious surface cover"
+                        #                      )))
+                      ),
+                      fluidRow(
+                        column(9,wellPanel(plotlyOutput("triplePlot"))
+                        ), 
+                        column(3,
+                               includeMarkdown("vulnerability.md"))
+                        
+                      )
              ),
-           fluidRow(
-             column(9,wellPanel(plotlyOutput("triplePlot"))
-             ), 
-             column(3,
-                    includeMarkdown("vulnerability.md"))
-                         
-           )
-          ),
-tabPanel("Download your Data",
-         fluidRow(
-           column(3,
-                  selectInput("cntyDNLD",
-                              "Select a County",
-                              c("All",sort(unique(as.character(CHVIdata$county)))
-                              ))
-           ),
-           column(3,
-                  selectInput("indDNLD",
-                              "Select an Indicator",
-                              c("All",
-                                "Projected number of extreme heat days",
-                                "Three-year ozone concentration exceedance",
-                                "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
-                                "Population living in sea level rise inundation areas",
-                                "Percent of population currently living in very high wildfire risk areas",
-                                "Percent of population aged 65 years or older",
-                                "Percent of population age less than 5 years",
-                                "Number of Violent Crimes per 1,000 Population",
-                                "Percent of population with a disability",
-                                "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
-                                "Percent of adults aged 18 - 64 without health insurance",
-                                "Percent of households with no one aged > 14 years speaking English",
-                                "Percent of population employed and aged > 16 working outdoors",
-                                "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
-                                "Percent of households with no vehicle ownership",
-                                "Percent of households with air conditioning",
-                                "Percent without tree canopy coverage",
-                                "Percent impervious surface cover"
-                              ))),
-          # column(2,
-          #         selectInput("raceDNLD",
-          #                     "Race",
-          #                     c("Total",
-          #                       "AIAN",
-          #                       "Asian",
-          #                       "AfricanAm",
-          #                       "Latino",
-          #                       "NHOPI",
-          #                       "White",
-          #                       "Multiple",
-          #                       "Other")
-          #  )),  
-          # column(2,
-          #              uiOutput("chooseStrataDNLD") # this criteria and race were creating problems in the queries
-          #  ), 
-           column(3,
-                  p(),
-                  downloadButton(outputId = "downloadData", label = "Download Selected Data")
-           )
-           
-           # ,
-           # 
-           # column(3,
-           #        p(),
-           #        downloadButton(outputId = "downloadSpatial", label = "Download Spatial Data")
-           # )
-           ),             
-         fluidRow(
-           wellPanel(DT::dataTableOutput("downloadTable"))
-         ))
-
-
-#####  Additional Page  ####
-
-  # navbarMenu(
-  #   "Additional Resources",
-  #  tabPanel("County Profile Report",
-  #           fluidRow(
-  #             column(4, 
-  #                    selectInput("cntyCHPR",
-  #                                "Select Your County",
-  #                                c(sort(unique(as.character(CHVIdata$county)))
-  #                                ))
-  #             )),
-  #           fluidRow(
-  #             column(
-  #               4,
-  #               p(uiOutput("downloadCHPR"))
-  #             )
-  #           ))
-  #  
-  #   
-  #  
-  #   
-  #   
-  #   
-  # )
-#####  Finish Additional  #####
-
-)
+             tabPanel("Download your Data",
+                      fluidRow(
+                        column(3,
+                               selectInput("cntyDNLD",
+                                           "Select a County",
+                                           c("All",sort(unique(as.character(CHVIdata$county)))
+                                           ))
+                        ),
+                        column(3,
+                               selectInput("indDNLD",
+                                           "Select an Indicator",
+                                           c("All",
+                                             "Projected number of extreme heat days",
+                                             "Three-year ozone concentration exceedance",
+                                             "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                             "Population living in sea level rise inundation areas",
+                                             "Percent of population currently living in very high wildfire risk areas",
+                                             "Percent of population aged 65 years or older",
+                                             "Percent of population age less than 5 years",
+                                             "Number of Violent Crimes per 1,000 Population",
+                                             "Percent of population with a disability",
+                                             "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                                             "Percent of adults aged 18 - 64 without health insurance",
+                                             "Percent of households with no one aged > 14 years speaking English",
+                                             "Percent of population employed and aged > 16 working outdoors",
+                                             "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                                             "Percent of households with no vehicle ownership",
+                                             "Percent of households with air conditioning",
+                                             "Percent without tree canopy coverage",
+                                             "Percent impervious surface cover"
+                                           ))),
+                        # column(2,
+                        #         selectInput("raceDNLD",
+                        #                     "Race",
+                        #                     c("Total",
+                        #                       "AIAN",
+                        #                       "Asian",
+                        #                       "AfricanAm",
+                        #                       "Latino",
+                        #                       "NHOPI",
+                        #                       "White",
+                        #                       "Multiple",
+                        #                       "Other")
+                        #  )),  
+                        # column(2,
+                        #              uiOutput("chooseStrataDNLD") # this criteria and race were creating problems in the queries
+                        #  ), 
+                        column(3,
+                               p(),
+                               downloadButton(outputId = "downloadData", label = "Download Selected Data")
+                        )
+                        
+                        # ,
+                        # 
+                        # column(3,
+                        #        p(),
+                        #        downloadButton(outputId = "downloadSpatial", label = "Download Spatial Data")
+                        # )
+                      ),             
+                      fluidRow(
+                        wellPanel(DT::dataTableOutput("downloadTable"))
+                      ))
+             
+             
+             #####  Additional Page  ####
+             
+             # navbarMenu(
+             #   "Additional Resources",
+             #  tabPanel("County Profile Report",
+             #           fluidRow(
+             #             column(4, 
+             #                    selectInput("cntyCHPR",
+             #                                "Select Your County",
+             #                                c(sort(unique(as.character(CHVIdata$county)))
+             #                                ))
+             #             )),
+             #           fluidRow(
+             #             column(
+             #               4,
+             #               p(uiOutput("downloadCHPR"))
+             #             )
+             #           ))
+             #  
+             #   
+             #  
+             #   
+             #   
+             #   
+             # )
+             #####  Finish Additional  #####
+             
+  )
 )
 
 ##### SERVER #####
 server <- function(input, output, session) {
-
-averages <- CHVIdata %>%
+  
+  averages <- CHVIdata %>%
     group_by(def, ind, strata) %>%
     summarise(stateAverage = mean(est, na.rm=T))
   
-
-#####  reactive table tab 1 #####
+  
+  #####  reactive table tab 1 #####
   
   data.tab1 <- eventReactive(input$cnty1,{
     
@@ -385,30 +383,30 @@ averages <- CHVIdata %>%
              Category = ifelse(ratio < 0.9, "below CA average",
                                ifelse(ratio > 1.1, "above CA average","around CA average")),
              fillColor = ifelse(ratio < 0.9, "#91bfdb",
-                               ifelse(ratio > 1.1, "#fc8d59","#ffffbf")))
+                                ifelse(ratio > 1.1, "#fc8d59","#ffffbf")))
   })
   
- 
-##### generate County (tab 1) Plot #####
+  
+  ##### generate County (tab 1) Plot #####
   
   output$plotCounty <- renderPlotly({
-   
+    
     tab1.df <- data.tab1()
     
-      plot_ly( 
-        data = tab1.df,
-        x =  ~ round(ratio,2),
-        y =  ~ reorder(label, ratio),
-        marker = list(color = tab1.df[["fillColor"]],
-                      line = list(color = "#404040", width=.5)
-        ),
-        type = "bar",
-        hoverinfo = 'text',
-        text = ~paste('</br>', paste(tab1.df[["Indicator"]]," - ",tab1.df[["Strata"]]),
-                      '</br> County Value:', round(tab1.df[["Value"]],2),
-                      '</br> State Average:', round(tab1.df[["CA_avg"]],2)),
-        
-        showlegend = FALSE
+    plot_ly( 
+      data = tab1.df,
+      x =  ~ round(ratio,2),
+      y =  ~ reorder(label, ratio),
+      marker = list(color = tab1.df[["fillColor"]],
+                    line = list(color = "#404040", width=.5)
+      ),
+      type = "bar",
+      hoverinfo = 'text',
+      text = ~paste('</br>', paste(tab1.df[["Indicator"]]," - ",tab1.df[["Strata"]]),
+                    '</br> County Value:', round(tab1.df[["Value"]],2),
+                    '</br> State Average:', round(tab1.df[["CA_avg"]],2)),
+      
+      showlegend = FALSE
       ) %>%
       layout(title = paste0('County Snapshot for ',tab1.df[["County"]], ' County -   \n (shows how the values in the county compare to the state average)' ),
              margin = list(l = 300,

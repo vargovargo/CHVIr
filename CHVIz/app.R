@@ -35,8 +35,8 @@ CHVIdata <- left_join(x = CHVIdata, y = {
                     "Percent of households with no vehicle ownership", 
                     "Percent of population currently living in very high wildfire risk areas" 
   ), 
-  defShort = c( "% HH with AC",
-                "% Tree Canopy",                                                   
+  defShort = c( "% HH w/ AC",
+                "% w/o Tree Canopy",                                                   
                 "% under 5",                                           
                 "Violent Crimes/1,000",                                      
                 "% with a Disability",                                                
@@ -137,7 +137,50 @@ ui <-  fluidPage(
                         )
                       )),
              
-             
+             tabPanel(title = "Vulnerability", 
+                      fluidRow(
+                        column(3,
+                               selectInput("exposure",
+                                           "Exposure Indicator",
+                                           c("Projected number of extreme heat days",
+                                             "Three-year ozone concentration exceedance",
+                                             "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+                                             "Population living in sea level rise inundation areas",
+                                             "Percent of population currently living in very high wildfire risk areas"
+                                           ))
+                        ),
+                        column(3,
+                               selectInput("sensitivity",
+                                           "Sensitivity Indicator",
+                                           c("Percent of population aged 65 years or older",
+                                             "Percent of population age less than 5 years",
+                                             "Number of Violent Crimes per 1,000 Population",
+                                             "Percent of population with a disability",
+                                             "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+                                             "Percent of adults aged 18 - 64 without health insurance",
+                                             "Percent of households with no one aged > 14 years speaking English",
+                                             "Percent of population employed and aged > 16 working outdoors",
+                                             "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+                                             "Percent of households with no vehicle ownership",
+                                             "Percent without tree canopy coverage",
+                                             "Percent impervious surface cover"
+                                           )))#,
+                        # column(3,
+                        #        selectInput("capacity",
+                        #                    "Adaptive Capacity Indicator",
+                        #                    c("Percent of households with air conditioning",
+                        #                      "Percent without tree canopy coverage",
+                        #                      "Percent impervious surface cover"
+                        #                      )))
+                      ),
+                      fluidRow(
+                        column(9,wellPanel(plotlyOutput("triplePlot"))
+                        ), 
+                        column(3,
+                               includeMarkdown("vulnerability.md"))
+                        
+                      )
+             ),
              
              
              
@@ -219,50 +262,7 @@ ui <-  fluidPage(
                )),
                wellPanel(DT::dataTableOutput("table"))
              ),
-             tabPanel(title = "Vulnerability", 
-                      fluidRow(
-                        column(3,
-                               selectInput("exposure",
-                                           "Exposure Indicator",
-                                           c("Projected number of extreme heat days",
-                                             "Three-year ozone concentration exceedance",
-                                             "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
-                                             "Population living in sea level rise inundation areas",
-                                             "Percent of population currently living in very high wildfire risk areas"
-                                           ))
-                        ),
-                        column(3,
-                               selectInput("sensitivity",
-                                           "Sensitivity Indicator",
-                                           c("Percent of population aged 65 years or older",
-                                             "Percent of population age less than 5 years",
-                                             "Number of Violent Crimes per 1,000 Population",
-                                             "Percent of population with a disability",
-                                             "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
-                                             "Percent of adults aged 18 - 64 without health insurance",
-                                             "Percent of households with no one aged > 14 years speaking English",
-                                             "Percent of population employed and aged > 16 working outdoors",
-                                             "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
-                                             "Percent of households with no vehicle ownership",
-                                             "Percent without tree canopy coverage",
-                                             "Percent impervious surface cover"
-                                           )))#,
-                        # column(3,
-                        #        selectInput("capacity",
-                        #                    "Adaptive Capacity Indicator",
-                        #                    c("Percent of households with air conditioning",
-                        #                      "Percent without tree canopy coverage",
-                        #                      "Percent impervious surface cover"
-                        #                      )))
-                      ),
-                      fluidRow(
-                        column(9,wellPanel(plotlyOutput("triplePlot"))
-                        ), 
-                        column(3,
-                               includeMarkdown("vulnerability.md"))
-                        
-                      )
-             ),
+
              tabPanel("Download your Data",
                       fluidRow(
                         column(3,

@@ -333,6 +333,8 @@ temp$reportyear <- as.character(as.numeric(temp$reportyear))
 # parse and write  COUNTY data
 temp2 <- temp %>%
   filter(geotype == "CO")  %>% # here's where we can filter the data further
+  mutate(estimate = 100-estimate,
+         ind_definition = "Percent of households without air conditioning") %>%
   select(
     ind_definition,
     county_name,
@@ -1704,6 +1706,10 @@ countyTab <- countyCHVIs %>%
 
 countyTab %>% write.csv(paste0(workingPath, "tables/CHVIcountiesTIDY.csv"),
                         row.names = FALSE)
+
+
+countyTab %>% saveRDS(file = "~/GitHub/CHVIr/CHVIz/chviCountyTidyRace.RDS")
+
 
 countyShpTab <- countyTab %>%
   filter(metric == "est") %>%

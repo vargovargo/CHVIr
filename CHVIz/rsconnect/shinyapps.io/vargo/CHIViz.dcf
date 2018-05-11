@@ -1,12 +1,12 @@
-name: CHIViz
-title: CHVIz
+name: chiviz
+title: CHIViz
 username:
 account: vargo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 296846
-bundleId: 1341294
-url: https://vargo.shinyapps.io/CHIViz/
-when: 1524765339.69003
+appId: 335816
+bundleId: 1365201
+url: https://vargo.shinyapps.io/chiviz/
+when: 1525889051.08668
 asMultiple: FALSE
 asStatic: FALSE

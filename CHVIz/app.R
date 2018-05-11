@@ -7,102 +7,112 @@ library(sf)
 library(DT)
 library(plotly)
 
-links <-read.csv("CHPRlinks.csv", header=T)
-CHVIdata <- readRDS("chviCountyTidyRace.RDS") 
+
+
+links <- read.csv("CHPRlinks.csv", header = T)
+CHVIdata <- readRDS("chviCountyTidyRace.RDS")
 CHVItracts <- readRDS("chviTractTidy.RDS")
-counties <- st_read("counties.geojson", stringsAsFactors = F) %>% st_transform(crs = 4326) 
-tracts <- st_read("tracts.GeoJSON", stringsAsFactors = F) %>% st_transform(crs = 4326) %>%
+counties <-
+  st_read("counties.geojson", stringsAsFactors = F)  %>% st_transform(crs = 4326)
+tracts <-
+  st_read("tracts.GeoJSON", stringsAsFactors = F) %>% st_transform(crs = 4326) %>%
   mutate(COUNTYFI_1 = as.character(paste0(STATE, COUNTY)))
 
-CHVIdata$def <- ifelse(CHVIdata$def == "percent impervious surface cover", "Percent impervious surface cover", CHVIdata$def)
-CHVIdata <- left_join(x = CHVIdata, y = {
-  data.frame(def= c("Percent of households with air conditioning", 
-                    "Percent without tree canopy coverage", 
-                    "Percent of population age less than 5 years", 
-                    "Number of Violent Crimes per 1,000 Population",
-                    "Percent of population with a disability", 
-                    "High School or Greater Educational Attainment in the Population Aged 25 Years and Older", 
-                    "Percent of population aged 65 years or older", 
-                    "Projected number of extreme heat days", 
-                    "Percent impervious surface cover", 
-                    "Percent of adults aged 18 - 64 without health insurance", 
-                    "Percent of households with no one aged > 14 years speaking English", 
-                    "Percent of population employed and aged > 16 working outdoors",  
-                    "Three-year ozone concentration exceedance", 
-                    "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
-                    "Overall, concentrated, and child (0 to 18 years of age) poverty rate", 
-                    "Population living in sea level rise inundation areas", 
-                    "Percent of households with no vehicle ownership", 
-                    "Percent of population currently living in very high wildfire risk areas" 
-  ), 
-  defShort = c( "% HH w/ AC",
-                "% w/o Tree Canopy",                                                   
-                "% under 5",                                           
-                "Violent Crimes/1,000",                                      
-                "% with a Disability",                                                
-                "% w/ HS Education",
-                "% over 65",                                           
-                "Extreme Heat Days",                                                  
-                "% Impervious Surface",  
-                "% w/o Health Insurance",                               
-                "% HH w/o English Speaker",                     
-                "% outdoor workers",                        
-                "O3 Concentration above Standard",                                              
-                "Annual Mean PM2.5 Concentration",                
-                "% in Poverty",                    
-                "% in Sea Level Rise Risk Areas",                                   
-                "% HH w/o Vehicle",                                        
-                " % in Very High Wildfire Risk" 
+CHVIdata$def <-
+  ifelse(
+    CHVIdata$def == "percent impervious surface cover",
+    "Percent impervious surface cover",
+    CHVIdata$def
   )
-  )}
-)
+CHVIdata <- left_join(x = CHVIdata, y = {
+  data.frame(
+    def = c(
+      "Percent of households without air conditioning",
+      "Percent without tree canopy coverage",
+      "Percent of population age less than 5 years",
+      "Number of Violent Crimes per 1,000 Population",
+      "Percent of population with a disability",
+      "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+      "Percent of population aged 65 years or older",
+      "Projected number of extreme heat days",
+      "Percent impervious surface cover",
+      "Percent of adults aged 18 - 64 without health insurance",
+      "Percent of households with no one aged > 14 years speaking English",
+      "Percent of population employed and aged > 16 working outdoors",
+      "Three-year ozone concentration exceedance",
+      "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+      "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+      "Population living in sea level rise inundation areas",
+      "Percent of households with no vehicle ownership",
+      "Percent of population currently living in very high wildfire risk areas"
+    ),
+    defShort = c(
+      "% HH w/o AC",
+      "% w/o Tree Canopy",
+      "% under 5",
+      "Violent Crimes/1,000",
+      "% with a Disability",
+      "% w/ HS Education",
+      "% over 65",
+      "Extreme Heat Days",
+      "% Impervious Surface",
+      "% w/o Health Insurance",
+      "% HH w/o English Speaker",
+      "% outdoor workers",
+      "O3 Concentration above Standard",
+      "Annual Mean PM2.5 Concentration",
+      "% in Poverty",
+      "% in Sea Level Rise Risk Areas",
+      "% HH w/o Vehicle",
+      " % in Very High Wildfire Risk"
+    )
+  )
+})
 
 
-narratives <- data.frame(def = c("Percent of households with air conditioning", 
-                                 "Percent without tree canopy coverage", 
-                                 "Percent of population age less than 5 years", 
-                                 "Number of Violent Crimes per 1,000 Population",
-                                 "Percent of population with a disability", 
-                                 "High School or Greater Educational Attainment in the Population Aged 25 Years and Older", 
-                                 "Percent of population aged 65 years or older", 
-                                 "Projected number of extreme heat days", 
-                                 "Percent impervious surface cover", 
-                                 "Percent of adults aged 18 - 64 without health insurance", 
-                                 "Percent of households with no one aged > 14 years speaking English", 
-                                 "Percent of population employed and aged > 16 working outdoors",  
-                                 "Three-year ozone concentration exceedance", 
-                                 "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
-                                 "Overall, concentrated, and child (0 to 18 years of age) poverty rate", 
-                                 "Population living in sea level rise inundation areas", 
-                                 "Percent of households with no vehicle ownership", 
-                                 "Percent of population currently living in very high wildfire risk areas"
-),
-narrativeLink = c("https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/AirConditioning_797_Narrative_12-14-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_TreeCanopy_458_Narrative_12-5-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Children0to4_788_Narrative_11-8-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_Crime_752-Narrative_Examples-10-30-15.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Disability_Narrative_795_11-16-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Educ_attain_HS_Narrative_Examples4-28-13.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Elderly_789_Narrative_11-9-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_ExtremeHeat_Narrative_03-29-2017.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/ImperviousSurfaces_423_Narrative_12-2-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Insurance_187_Narrative_11-29-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_LinguisticIsolation_Narrative_11-15-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_OutdoorsWorkers_Narrative_790_12-5-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Ozone_801_Narrative_11-8-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_PM25_776_Narrative_8-1-2017.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_PovertyRate_754_Narrative_Examples11-5-13rev3-12-14.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Sealevelrise_Narrative_11-1-2016.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/CarOwnership_37_Narrative_9-6-16.pdf",
-                  "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/WildfireZone_786_Narrative_11-8-2016.pdf"
-                  
-)
-
-
-
-
-
-)
+narratives <-
+  data.frame(
+    def = c(
+      "Percent of households without air conditioning",
+      "Percent without tree canopy coverage",
+      "Percent of population age less than 5 years",
+      "Number of Violent Crimes per 1,000 Population",
+      "Percent of population with a disability",
+      "High School or Greater Educational Attainment in the Population Aged 25 Years and Older",
+      "Percent of population aged 65 years or older",
+      "Projected number of extreme heat days",
+      "Percent impervious surface cover",
+      "Percent of adults aged 18 - 64 without health insurance",
+      "Percent of households with no one aged > 14 years speaking English",
+      "Percent of population employed and aged > 16 working outdoors",
+      "Three-year ozone concentration exceedance",
+      "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
+      "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
+      "Population living in sea level rise inundation areas",
+      "Percent of households with no vehicle ownership",
+      "Percent of population currently living in very high wildfire risk areas"
+    ),
+    narrativeLink = c(
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/AirConditioning_797_Narrative_12-14-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_TreeCanopy_458_Narrative_12-5-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Children0to4_788_Narrative_11-8-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_Crime_752-Narrative_Examples-10-30-15.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Disability_Narrative_795_11-16-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Educ_attain_HS_Narrative_Examples4-28-13.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Elderly_789_Narrative_11-9-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_ExtremeHeat_Narrative_03-29-2017.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/ImperviousSurfaces_423_Narrative_12-2-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Insurance_187_Narrative_11-29-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_LinguisticIsolation_Narrative_11-15-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_OutdoorsWorkers_Narrative_790_12-5-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_Ozone_801_Narrative_11-8-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/BRACE_PM25_776_Narrative_8-1-2017.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/HCI_PovertyRate_754_Narrative_Examples11-5-13rev3-12-14.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/Sealevelrise_Narrative_11-1-2016.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/CarOwnership_37_Narrative_9-6-16.pdf",
+      "https://www.cdph.ca.gov/Programs/OHE/CDPH%20Document%20Library/CHVIs/WildfireZone_786_Narrative_11-8-2016.pdf"
+    )
+  )
 
 
 
@@ -118,24 +128,28 @@ ui <-  fluidPage(
   navbarPage(position = "fixed-top", 
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
              theme = shinytheme("flatly"),
-             title = div("CHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
+             title = div("CCHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
                                    ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
              )),
              
              tabPanel("About",
                       fluidRow(
                         column(
-                          6,
-                          includeMarkdown("about.md"),
+                          5,
+                          includeMarkdown("about.md")
+                        ),
+                        column(7,
+                          tags$br(),
                           tags$br(),
                           img(
                             class = "img-polaroid",
                             src = "https://www.cdph.ca.gov/Programs/OHE/PublishingImages/Policy%20Unit/CDPH-Climate-change-and-health-impacts-diagram.png",
-                            width = 900,
+                            width = 700,
                             alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
                           )
                         )
-                      )),
+                        )
+                      ),
              
              tabPanel(title = "Vulnerability", 
                       fluidRow(
@@ -162,19 +176,20 @@ ui <-  fluidPage(
                                              "Percent of population employed and aged > 16 working outdoors",
                                              "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
                                              "Percent of households with no vehicle ownership",
+                                             "Percent of households without air conditioning",
                                              "Percent without tree canopy coverage",
                                              "Percent impervious surface cover"
                                            )))#,
                         # column(3,
                         #        selectInput("capacity",
                         #                    "Adaptive Capacity Indicator",
-                        #                    c("Percent of households with air conditioning",
+                        #                    c("Percent of households without air conditioning",
                         #                      "Percent without tree canopy coverage",
                         #                      "Percent impervious surface cover"
                         #                      )))
                       ),
                       fluidRow(
-                        column(9,wellPanel(plotlyOutput("triplePlot"))
+                        column(9,wellPanel(plotlyOutput("triplePlot",height = "600px"))
                         ), 
                         column(3,
                                includeMarkdown("vulnerability.md"))
@@ -202,13 +217,18 @@ ui <-  fluidPage(
                                p(uiOutput("downloadCHPR1"))
                         )),
                       fluidRow(
-                        column(9, wellPanel(plotlyOutput("plotCounty"))),
+                        column(9, wellPanel(plotlyOutput("plotCounty",height = "600px"))),
                         column(3, includeMarkdown("countyPlot.md"))),
                       wellPanel(DT::dataTableOutput("countyTable"))
                       
              ),
              
+          
+            
              
+             
+             
+         
              #####  Select an Indicator Tool  #####    
              
              
@@ -240,7 +260,7 @@ ui <-  fluidPage(
                                       "Percent of population employed and aged > 16 working outdoors",
                                       "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
                                       "Percent of households with no vehicle ownership",
-                                      "Percent of households with air conditioning",
+                                      "Percent of households without air conditioning",
                                       "Percent without tree canopy coverage",
                                       "Percent impervious surface cover"
                                     ))),
@@ -255,10 +275,10 @@ ui <-  fluidPage(
                ),
                
                fluidRow(column(8,
-                               wellPanel(plotlyOutput("plot"))
+                               wellPanel(plotlyOutput("plot", height = "600px"))
                ), 
                column(4,
-                      wellPanel(leafletOutput("map"))
+                      wellPanel(leafletOutput("map", height = "600px"))
                )),
                wellPanel(DT::dataTableOutput("table"))
              ),
@@ -290,7 +310,7 @@ ui <-  fluidPage(
                                              "Percent of population employed and aged > 16 working outdoors",
                                              "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
                                              "Percent of households with no vehicle ownership",
-                                             "Percent of households with air conditioning",
+                                             "Percent of households without air conditioning",
                                              "Percent without tree canopy coverage",
                                              "Percent impervious surface cover"
                                            ))),
@@ -528,7 +548,9 @@ server <- function(input, output, session) {
         Denominator
       )) %>% DT::formatRound(c(5:9), 1)
   })
+
   
+
  
 ##### Census tract data ######
   
@@ -562,18 +584,18 @@ average <- eventReactive(c(input$ind, input$strt), {
         filter(COUNTYFI_1 == selectedFIPS()) %>%
         left_join(tractData()) 
       
-      pal <- colorBin(
+      pal <- colorQuantile(
         palette = "RdYlBu",
-        bins = 8,
+        n = 5,
         reverse = TRUE,
-        domain = NULL
+        domain =  tractData()$est
       )
       
-      pal2 <- colorBin(
-        palette = "Blues",
-        bins = 4,
-        reverse = FALSE,
-        domain = NULL
+      pal2 <- colorQuantile(
+        palette = "RdYlBu",
+        n = 4,
+        reverse = TRUE,
+        domain = data.tab2()$Mean
     
       )
       
@@ -591,7 +613,7 @@ average <- eventReactive(c(input$ind, input$strt), {
           popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
                          round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
                          ". The state average is ", round(average(),1)),
-                         group="Diverging Colors") %>% 
+                         group="Tract Quintiles") %>% 
             addPolygons(
               color = "#444444",
               weight = 1,
@@ -603,19 +625,19 @@ average <- eventReactive(c(input$ind, input$strt), {
               popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
                              round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
                              ". The state average is ", round(average(),1)),
-              group="Single Color")  %>%
+              group="State Quintiles")  %>%
           addLayersControl(
-            baseGroups = c("Diverging Colors", "Single Color"),
+            baseGroups = c("Tract Quintiles", "State Quintiles"),
             options = layersControlOptions(collapsed = TRUE)
-          ) 
+          ) %>% 
           
-        # addLegend("topright",
-        #           pal = pal,
-        #           values = ~ mapTemp$est,
-        #           opacity = .4,
-        #           title = input$ind 
-        # ) 
-      
+        addLegend("bottomleft",
+                  pal = pal,
+                  values = ~ mapTemp$est,
+                  opacity = .4,
+                  title = input$ind
+        )
+
     
   })
   
@@ -745,7 +767,7 @@ average <- eventReactive(c(input$ind, input$strt), {
                                           ifelse(tri[["vulnerability"]] == 5, "rgba(244,109,67, 0.9)", "rgba(215,48,39, 1)"))))
     
     tri[["size"]] <- ntile(tri[["Population"]],29)
-    
+    tri <- na.omit(tri)
     
     # left_join({
     #   
@@ -776,7 +798,7 @@ average <- eventReactive(c(input$ind, input$strt), {
       x =  ~ round(tri[[5]],2),
       y =  ~ round(tri[[7]],2),
       hoverinfo = 'text',
-      text = ~paste('</br> County',tri[["county"]],
+      text = ~paste('</br> County:',tri[["county"]],
                     '</br> Population:',format(tri[["Population"]], big.mark = ","),
                     '</br> Exposure:', round(tri[[5]],2), names(tri)[5],
                     '</br> Sensitivity:', round(tri[[7]],2),  names(tri)[7]),
@@ -820,15 +842,7 @@ average <- eventReactive(c(input$ind, input$strt), {
                'toggleSpikelines',
                'sendDataToCloud',
                'hoverCompareCartesian',
-               'zoom2d',
-               'pan2d',
-               'select2d',
-               'lasso2d',
-               'zoomIn2d',
-               'zoomOut2d',
-               'autoScale2d',
-               'resetScale2d',
-               'hoverClosestCartesian'
+              'hoverClosestCartesian'
              )
       )
     

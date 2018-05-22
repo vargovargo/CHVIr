@@ -147,10 +147,10 @@ ui <-  fluidPage(
                             width = 700,
                             alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
                           ),
-                          tags$br(), 
                           img(
+                            class = "img-polaroid",
                             src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/chviTable.png",
-                            width = 700,
+                           # width = 700,
                             alt = "Table of Climate Change & Health Vulnerability Indicators"
                           )
                         )

@@ -149,7 +149,7 @@ ui <-  fluidPage(
                           ),
                           tags$br(), 
                           img(
-                            src = "chviTable.png",
+                            src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/chviTable.png",
                             width = 700,
                             alt = "Table of Climate Change & Health Vulnerability Indicators"
                           )

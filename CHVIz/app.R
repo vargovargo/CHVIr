@@ -750,15 +750,37 @@ triple <- reactive({
       }) %>%
       rename(Population = denmntr)
   }) %>%  
-    mutate(Population = as.numeric(as.character(Population)),
-           vulnerability = factor(sensTer + expTer))
-  
-  foo[["sign"]] <- ifelse(foo[["vulnerability"]] == 2, "rgba(26,152,80, 0.5)",
-                          ifelse(foo[["vulnerability"]] == 3, "rgba(166,217,106, 0.6)",
-                                 ifelse(foo[["vulnerability"]] == 4, "rgba(253,174,97, 0.7)",
-                                        ifelse(foo[["vulnerability"]] == 5, "rgba(244,109,67, 0.9)", "rgba(215,48,39, 1)"))))
-  
-  foo[["size"]] <- ntile(foo[["Population"]],29)
+     mutate(Population = as.numeric(as.character(Population)),
+            vulnerability = factor(ifelse(expTer == 1 & sensTer == 1, "Low Exposure, Low Sensitivity",
+                                          ifelse(expTer == 1 & sensTer == 2, "Low Exposure, Medium Sensitivity",
+                                                 ifelse(expTer == 1 & sensTer == 3, "Low Exposure, High Sensitivity",
+                                                        ifelse(expTer == 2 & sensTer == 1, "Medium Exposure, Low Sensitivity",
+                                                               ifelse(expTer == 3 & sensTer == 1, "High Exposure, Low Sensitivity",
+                                                                      ifelse(expTer == 2 & sensTer == 2, "Medium Exposure, Medium Sensitivity",
+                                                                             ifelse(expTer == 2 & sensTer == 3, "Medium Exposure, High Sensitivity",
+                                                                                    ifelse(expTer == 3 & sensTer == 2, "High Exposure, Medium Sensitivity","High Exposure, High Sensitivity"
+                                                                                    )))))))), levels = c("Low Exposure, Low Sensitivity",
+                                                                                                         "Low Exposure, Medium Sensitivity",
+                                                                                                         "Medium Exposure, Low Sensitivity",
+                                                                                                         "Medium Exposure, Medium Sensitivity",
+                                                                                                         "High Exposure, Low Sensitivity",
+                                                                                                         "Low Exposure, High Sensitivity",
+                                                                                                         "High Exposure, Medium Sensitivity",
+                                                                                                         "Medium Exposure, High Sensitivity",
+                                                                                                         "High Exposure, High Sensitivity"
+                                                                                    )),
+            sign = ifelse(expTer == 1 & sensTer == 1, "rgba(14,137,68, 0.5)",
+                          ifelse(expTer == 1 & sensTer == 2,"rgba(205,225,141, 0.7)",
+                                 ifelse(expTer == 1 & sensTer == 3, "rgba(239,119,34, 0.8)",
+                                        ifelse(expTer == 2 & sensTer == 1, "rgba(155,200,213,.7)",
+                                               ifelse(expTer == 3 & sensTer == 1, "rgba(92,81,159,0.8)",
+                                                      ifelse(expTer == 2 & sensTer == 2, "rgba(232,232,232,0.7)",
+                                                             ifelse(expTer == 2 & sensTer == 3, "rgba(245,150,164,0.9)",
+                                                                    ifelse(expTer == 3 & sensTer == 2, "rgba(205,156,197,0.9)","rgba(234,17,129,1)"
+                                                                    )))))))),
+            size = ntile(Population,29)
+     )
+   
   foo <- na.omit(foo)
 
 })
@@ -769,31 +791,7 @@ triple <- reactive({
     
     tri <- triple()
     
-    # left_join({
-    #   
-    #   CHVIdata %>% 
-    #     filter(def  == input$capacity & strata %in% c("population-weighted", "none") & metric =="est") %>%
-    #     select(county, climReg, COUNTYFI_1, def, value) %>% 
-    #     spread(key = def, value = value)
-    #   
-    # }) %>% 
-    
-    # tri %>% ggplot(aes_q(x = as.name(names(tri)[5]), 
-    #                      y = as.name(names(tri)[7]),
-    #                      size = as.name(names(tri)[8]), 
-    #                      color = as.name(names(tri)[8])
-    #                )) +
-    #   geom_point(alpha = 0.9) +
-    #   guides(alpha = FALSE, color = FALSE, size = FALSE) + 
-    #   scale_color_brewer(palette = "Spectral", direction = -1) +
-    #   scale_size_continuous(range = c(3,15)) + 
-    #   geom_text(aes_q(x = as.name(names(tri)[5]), 
-    #                   y = as.name(names(tri)[7]), 
-    #                   label = as.name(names(tri)[1])), size= 3, color="black") + 
-    #   ggtitle("This plot displays the vulnerability to two factors. Counties in the top right corner (red) are in the top third of all counties for each.")
-    # 
-    
-    plot_ly(
+     plot_ly(
       data = tri,
       x =  ~ round(tri[[5]],2),
       y =  ~ round(tri[[7]],2),
@@ -856,8 +854,15 @@ output$vulnMap <- renderLeaflet({
       
       mapTemp2 <- left_join(counties, triple()) %>% rename(County = county)
       
-      pal <- colorFactor(c("#1a9850", "#a6d96a", "#fdae61",  "#f46d43", "#d73027"), mapTemp2$vulnerability)
-      
+      pal <- colorFactor(c("#0E8944", 
+                           "#CDE18D", 
+                           "#9BC8D5",  
+                           "#E8E8E8", 
+                           "#5C519F",
+                           "#EF7722",
+                           "#CC9CC5",
+                           "#F596A4",
+                           "#EA1181"), mapTemp2$vulnerability)
       
       
       mapTemp2 %>%

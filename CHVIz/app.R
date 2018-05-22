@@ -161,9 +161,17 @@ ui <-  fluidPage(
              
              tabPanel(title = "Vulnerability", 
                       fluidRow(
-                        column(6,
+                        column(5,
                                includeMarkdown("vulnerability.md"
                                )),  
+                        column(2,
+                               img(
+                                 class = "img-polaroid",
+                                 src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/vulnerabilityLegend.png",
+                                 height = 225,
+                                 alt = "Vulnerability Bivariate Legend"
+                               )
+                        ),
                         column(3,
                                selectInput("exposure",
                                            "Exposure Indicator",
@@ -172,8 +180,7 @@ ui <-  fluidPage(
                                              "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
                                              "Population living in sea level rise inundation areas",
                                              "Percent of population currently living in very high wildfire risk areas"
-                                           ))),
-                        column(3, 
+                                           )),
                                selectInput("sensitivity",
                                            "Sensitivity Indicator",
                                            c("Percent of population aged 65 years or older",
@@ -189,7 +196,9 @@ ui <-  fluidPage(
                                              "Percent of households without air conditioning",
                                              "Percent without tree canopy coverage",
                                              "Percent impervious surface cover"
-                                           )))
+                                           ))
+                                )
+                        
                       ),
                       
                       fluidRow(

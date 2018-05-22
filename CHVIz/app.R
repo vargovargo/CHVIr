@@ -147,10 +147,12 @@ ui <-  fluidPage(
                             width = 700,
                             alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
                           ),
+                          tags$br(),
+                          tags$br(),
                           img(
                             class = "img-polaroid",
                             src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/chviTable.png",
-                           # width = 700,
+                            width = 700,
                             alt = "Table of Climate Change & Health Vulnerability Indicators"
                           )
                         )
@@ -555,7 +557,7 @@ server <- function(input, output, session) {
  
 selectedFIPS <- eventReactive(input$cnty, {
    
-   as.character(paste0("0",CHVIdata$COUNTYFI_1[CHVIdata$county == input$cnty][1]))
+   as.character(paste0(CHVIdata$COUNTYFI_1[CHVIdata$county == input$cnty][1]))
    
 })
 
@@ -583,7 +585,7 @@ average <- eventReactive(c(input$ind, input$strt), {
       
       pal2 <- colorQuantile(
         palette = "RdYlBu",
-        n = 4,
+        n = 5,
         reverse = TRUE,
         domain = data.tab2()$Mean
     
@@ -860,7 +862,7 @@ output$vulnMap <- renderLeaflet({
       
       mapTemp2 %>%
         leaflet()  %>% 
-        addTiles() %>%
+        addProviderTiles(providers$CartoDB.Positron) %>% 
         addPolygons(
           color = "#444444",
           weight = 1,

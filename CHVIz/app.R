@@ -161,18 +161,10 @@ ui <-  fluidPage(
              
              tabPanel(title = "Vulnerability", 
                       fluidRow(
-                        column(5,
+                        column(8,
                                includeMarkdown("vulnerability.md"
                                )),  
                         column(2,
-                               img(
-                                 class = "img-polaroid",
-                                 src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/vulnerabilityLegend.png",
-                                 height = 225,
-                                 alt = "Vulnerability Bivariate Legend"
-                               )
-                        ),
-                        column(3,
                                selectInput("exposure",
                                            "Exposure Indicator",
                                            c("Projected number of extreme heat days",
@@ -181,7 +173,7 @@ ui <-  fluidPage(
                                              "Population living in sea level rise inundation areas",
                                              "Percent of population currently living in very high wildfire risk areas"
                                            )),
-                               selectInput("sensitivity",
+                       selectInput("sensitivity",
                                            "Sensitivity Indicator",
                                            c("Percent of population aged 65 years or older",
                                              "Percent of population age less than 5 years",
@@ -197,7 +189,14 @@ ui <-  fluidPage(
                                              "Percent without tree canopy coverage",
                                              "Percent impervious surface cover"
                                            ))
-                                )
+                                ),
+                        column(2,
+                               img(
+                                 class = "img-polaroid",
+                                 src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/vulnerabilityLegend.png",
+                                 alt = "Vulnerability Bivariate Legend"
+                               )
+                        )
                         
                       ),
                       
@@ -886,8 +885,9 @@ output$vulnMap <- renderLeaflet({
           highlightOptions = highlightOptions(color = "white", weight = 2,
                                               bringToFront = TRUE),
           label = ~ (County),
-          popup = paste0("This is ",mapTemp2$County," County.")
-        ) %>%
+          popup = paste0("This is ",mapTemp2$County," County. </br> Its vulnerability is defined by ", mapTemp2$vulnerability, 
+                    '</br> Exposure: ', round(triple()[[5]],2), ' ', names(triple())[5],
+                         '</br> Sensitivity: ', round(triple()[[7]],2), ' ',  names(triple())[7])) %>%
         addLegend("topright",
                   pal = pal,
                   values = ~ vulnerability,

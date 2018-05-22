@@ -146,6 +146,12 @@ ui <-  fluidPage(
                             src = "https://www.cdph.ca.gov/Programs/OHE/PublishingImages/Policy%20Unit/CDPH-Climate-change-and-health-impacts-diagram.png",
                             width = 700,
                             alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
+                          ),
+                          tags$br(), 
+                          img(
+                            src = "chviTable.png",
+                            width = 700,
+                            alt = "Table of Climate Change & Health Vulnerability Indicators"
                           )
                         )
                         )
@@ -153,6 +159,9 @@ ui <-  fluidPage(
              
              tabPanel(title = "Vulnerability", 
                       fluidRow(
+                        column(6,
+                               includeMarkdown("vulnerability.md"
+                               )),  
                         column(3,
                                selectInput("exposure",
                                            "Exposure Indicator",
@@ -161,9 +170,8 @@ ui <-  fluidPage(
                                              "Annual Mean Ambient Concentration of Fine Particulate Matter (PM2.5)",
                                              "Population living in sea level rise inundation areas",
                                              "Percent of population currently living in very high wildfire risk areas"
-                                           ))
-                        ),
-                        column(3,
+                                           ))),
+                        column(3, 
                                selectInput("sensitivity",
                                            "Sensitivity Indicator",
                                            c("Percent of population aged 65 years or older",
@@ -179,26 +187,14 @@ ui <-  fluidPage(
                                              "Percent of households without air conditioning",
                                              "Percent without tree canopy coverage",
                                              "Percent impervious surface cover"
-                                           )))#,
-                        # column(3,
-                        #        selectInput("capacity",
-                        #                    "Adaptive Capacity Indicator",
-                        #                    c("Percent of households without air conditioning",
-                        #                      "Percent without tree canopy coverage",
-                        #                      "Percent impervious surface cover"
-                        #                      )))
+                                           )))
                       ),
+                      
                       fluidRow(
-                        column(9,wellPanel(plotlyOutput("triplePlot",height = "600px"))
+                        column(8,wellPanel(plotlyOutput("triplePlot",height = "600px"))
                         ), 
-                        column(3,
-                               includeMarkdown("vulnerability.md"))
-                        
-                      )
-             ),
-             
-             
-             
+                        column(4,wellPanel(leafletOutput("vulnMap",height = "600px")))
+                      )),
              
              tabPanel("Single County",
                       # Create a new Row in the UI for selectInputs
@@ -222,12 +218,6 @@ ui <-  fluidPage(
                       wellPanel(DT::dataTableOutput("countyTable"))
                       
              ),
-             
-          
-            
-             
-             
-             
          
              #####  Select an Indicator Tool  #####    
              
@@ -734,40 +724,48 @@ average <- eventReactive(c(input$ind, input$strt), {
     
   })
   
+
+##### make vulnerability table #####
+
+triple <- reactive({
+ 
+   foo <- {CHVIdata %>% 
+      filter(def  == input$exposure & strata %in% c("2085", 2085, "none") & race == "Total") %>%
+      mutate(expTer = ntile(est, 3)) %>%
+      select(county, climReg, COUNTYFI_1, def, est, expTer) %>% 
+      spread(key = def, value = est)
+  } %>% left_join({
+    
+    CHVIdata %>% 
+      filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none", "population-weighted") & race =="Total") %>%
+      mutate(sensTer = ntile(est, 3)) %>%
+      select(county, climReg, COUNTYFI_1, def, est, sensTer) %>% 
+      spread(key = def, value = est) %>% 
+      left_join({
+        CHVIdata %>%
+          filter(def  == "Percent of population aged 65 years or older" & race == "Total") %>%
+          select(county, denmntr)
+      }) %>%
+      rename(Population = denmntr)
+  }) %>%  
+    mutate(Population = as.numeric(as.character(Population)),
+           vulnerability = factor(sensTer + expTer))
+  
+  foo[["sign"]] <- ifelse(foo[["vulnerability"]] == 2, "rgba(26,152,80, 0.5)",
+                          ifelse(foo[["vulnerability"]] == 3, "rgba(166,217,106, 0.6)",
+                                 ifelse(foo[["vulnerability"]] == 4, "rgba(253,174,97, 0.7)",
+                                        ifelse(foo[["vulnerability"]] == 5, "rgba(244,109,67, 0.9)", "rgba(215,48,39, 1)"))))
+  
+  foo[["size"]] <- ntile(foo[["Population"]],29)
+  foo <- na.omit(foo)
+
+})
+
 ##### make triple plot (tab 3) #####
   
   output$triplePlot <- renderPlotly({
     
-    
-    tri <- {CHVIdata %>% 
-        filter(def  == input$exposure & strata %in% c("2085", 2085, "none") & race == "Total") %>%
-        mutate(expTer = ntile(est, 3)) %>%
-        select(county, climReg, COUNTYFI_1, def, est, expTer) %>% 
-        spread(key = def, value = est)
-    } %>% left_join({
-      
-      CHVIdata %>% 
-        filter(def  == input$sensitivity & strata %in% c("Overall","ViolentCrime","total","2006-2010","2009-2013","All Non-English","none", "population-weighted") & race =="Total") %>%
-        mutate(sensTer = ntile(est, 3)) %>%
-        select(county, climReg, COUNTYFI_1, def, est, sensTer) %>% 
-        spread(key = def, value = est) %>% 
-        left_join({
-          CHVIdata %>%
-            filter(def  == "Percent of population aged 65 years or older" & race == "Total") %>%
-            select(county, denmntr)
-        }) %>%
-        rename(Population = denmntr)
-    }) %>%  
-      mutate(Population = as.numeric(as.character(Population)),
-             vulnerability = factor(sensTer + expTer))
-    
-    tri[["sign"]] <- ifelse(tri[["vulnerability"]] == 2, "rgba(26,152,80, 0.5)",
-                            ifelse(tri[["vulnerability"]] == 3, "rgba(166,217,106, 0.6)",
-                                   ifelse(tri[["vulnerability"]] == 4, "rgba(253,174,97, 0.7)",
-                                          ifelse(tri[["vulnerability"]] == 5, "rgba(244,109,67, 0.9)", "rgba(215,48,39, 1)"))))
-    
-    tri[["size"]] <- ntile(tri[["Population"]],29)
-    tri <- na.omit(tri)
+    tri <- triple()
     
     # left_join({
     #   
@@ -849,6 +847,43 @@ average <- eventReactive(c(input$ind, input$strt), {
   })
   
   
+##### generate map (vulnerability Tab) #####
+#### Attention
+
+output$vulnMap <- renderLeaflet({
+      
+      mapTemp2 <- left_join(counties, triple()) %>% rename(County = county)
+      
+      pal <- colorFactor(c("#1a9850", "#a6d96a", "#fdae61",  "#f46d43", "#d73027"), mapTemp2$vulnerability)
+      
+      
+      
+      mapTemp2 %>%
+        leaflet()  %>% 
+        addTiles() %>%
+        addPolygons(
+          color = "#444444",
+          weight = 1,
+          smoothFactor = 0.1,
+          fillOpacity = 0.6,
+          fillColor =  ~pal(vulnerability),
+          highlightOptions = highlightOptions(color = "white", weight = 2,
+                                              bringToFront = TRUE),
+          label = ~ (County),
+          popup = paste0("This is ",mapTemp2$County," County.")
+        ) %>%
+        addLegend("topright",
+                  pal = pal,
+                  values = ~ vulnerability,
+                  opacity = 1,
+                  labFormat = labelFormat(),
+                  title = input$ind 
+        ) %>%
+        clearControls()
+      
+    })
+  
+
   
   
 ##### Strata Interface for Download tab #####

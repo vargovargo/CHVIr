@@ -349,11 +349,6 @@ ui <-  fluidPage(
                "How to Use",
               tabPanel("The Vulnerability Page",
                        fluidRow(
-                         column(8,img(
-                           class = "img-polaroid",
-                           src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png",
-                           alt = "How to Vulnerability"
-                         )),
                          column(4,
                                 includeMarkdown("howToVuln.md"))
                                 

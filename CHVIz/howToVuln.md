@@ -6,6 +6,9 @@ description: first page for R Resources on CDPH User
 
 ---
 
+![](https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png)
+
+
 ## Vulnerability Tab Tutorial
 
 #### 1

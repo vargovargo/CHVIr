@@ -7,8 +7,6 @@ library(sf)
 library(DT)
 library(plotly)
 
-
-
 links <- read.csv("CHPRlinks.csv", header = T)
 CHVIdata <- readRDS("chviCountyTidyRace.RDS")
 CHVItracts <- readRDS("chviTractTidy.RDS")
@@ -17,6 +15,7 @@ counties <-
 tracts <-
   st_read("tracts.GeoJSON", stringsAsFactors = F) %>% st_transform(crs = 4326) %>%
   mutate(COUNTYFI_1 = as.character(paste0(STATE, COUNTY)))
+
 
 CHVIdata$def <-
   ifelse(
@@ -129,7 +128,7 @@ ui <-  fluidPage(
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
              theme = shinytheme("flatly"),
              title = div("CCHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
-                                   ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
+                                   ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
              )),
              
              tabPanel("About",
@@ -151,7 +150,7 @@ ui <-  fluidPage(
                           tags$br(),
                           img(
                             class = "img-polaroid",
-                            src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/chviTable.png",
+                            src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/chviTable.png",
                             width = 700,
                             alt = "Table of Climate Change & Health Vulnerability Indicators"
                           )
@@ -193,7 +192,7 @@ ui <-  fluidPage(
                         column(2,
                                img(
                                  class = "img-polaroid",
-                                 src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/vulnerabilityLegend.png",
+                                 src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerabilityLegend.png",
                                  alt = "Vulnerability Bivariate Legend"
                                )
                         )
@@ -213,18 +212,15 @@ ui <-  fluidPage(
                       #####  Select an County  #####       
                       
                       fluidRow(
-                        column(3,
+                        column(8, includeMarkdown("countyPlot.md")),
+                        column(2,
                                selectInput("cnty1",
                                            "Select a County",
                                            c(sort(unique(as.character(CHVIdata$county)))
-                                           ))
-                        ),
-                        column(3,br(),
+                                           )),
                                p(uiOutput("downloadCHPR1"))
                         )),
-                      fluidRow(
-                        column(9, wellPanel(plotlyOutput("plotCounty",height = "600px"))),
-                        column(3, includeMarkdown("countyPlot.md"))),
+                      wellPanel(plotlyOutput("plotCounty",height = "600px")),
                       wellPanel(DT::dataTableOutput("countyTable"))
                       
              ),
@@ -344,35 +340,27 @@ ui <-  fluidPage(
                       ),             
                       fluidRow(
                         wellPanel(DT::dataTableOutput("downloadTable"))
-                      ))
+                      )),
              
              
              #####  Additional Page  ####
              
-             # navbarMenu(
-             #   "Additional Resources",
-             #  tabPanel("County Profile Report",
-             #           fluidRow(
-             #             column(4, 
-             #                    selectInput("cntyCHPR",
-             #                                "Select Your County",
-             #                                c(sort(unique(as.character(CHVIdata$county)))
-             #                                ))
-             #             )),
-             #           fluidRow(
-             #             column(
-             #               4,
-             #               p(uiOutput("downloadCHPR"))
-             #             )
-             #           ))
-             #  
-             #   
-             #  
-             #   
-             #   
-             #   
-             # )
-             #####  Finish Additional  #####
+             navbarMenu(
+               "How to Use",
+              tabPanel("The Vulnerability Page",
+                       fluidRow(
+                         column(8,img(
+                           class = "img-polaroid",
+                           src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png",
+                           alt = "How to Vulnerability"
+                         )),
+                         column(4,
+                                includeMarkdown("howToVuln.md"))
+                                
+                         )
+                         )
+                       )
+  #####  Finish Additional  #####
              
   )
 )
@@ -385,7 +373,7 @@ server <- function(input, output, session) {
     summarise(stateAverage = mean(est, na.rm=T))
   
   
-  #####  reactive table tab 1 #####
+  #####  reactive table (tab 1 - single county) #####
   
   data.tab1 <- eventReactive(input$cnty1,{
     
@@ -399,7 +387,7 @@ server <- function(input, output, session) {
              CA_avg = stateAverage
       ) %>%
       mutate(label = paste0(defShort, " - ", Strata),
-             ratio = Value/CA_avg,
+             ratio = ifelse(is.na(Value), 0, Value/CA_avg),
              Category = ifelse(ratio < 0.9, "below CA average",
                                ifelse(ratio > 1.1, "above CA average","around CA average")),
              fillColor = ifelse(ratio < 0.9, "#91bfdb",
@@ -407,7 +395,7 @@ server <- function(input, output, session) {
   })
   
   
-  ##### generate County (tab 1) Plot #####
+  ##### generate County (tab 1 - single county) Plot #####
   
   output$plotCounty <- renderPlotly({
     
@@ -477,7 +465,7 @@ server <- function(input, output, session) {
   })
   
   
-##### generate County (tab 1) Table ######  
+##### generate County (tab 1 - single county) Table ######  
   
   output$countyTable <- DT::renderDataTable({DT::datatable(
     
@@ -532,7 +520,7 @@ server <- function(input, output, session) {
   })
   
   
-##### generate table of the data (tab 2) #####
+##### generate table of the data (tab 2 - single indicator) #####
   
   output$table <- DT::renderDataTable({DT::datatable(
     data.tab2()  %>%
@@ -552,7 +540,7 @@ server <- function(input, output, session) {
   
 
  
-##### Census tract data ######
+##### Census tract data (tab 2 - single indicator) ######
   
  tractData <- reactive({
    
@@ -576,13 +564,15 @@ average <- eventReactive(c(input$ind, input$strt), {
       ungroup() %>% select(stateAverage)}[1])
 })
   
-##### generate map (tab 2) #####
+##### generate map (tab 2 - single indicator) #####
   
   output$map <- renderLeaflet({
     
       mapTemp <- tracts %>% 
         filter(COUNTYFI_1 == selectedFIPS()) %>%
         left_join(tractData()) 
+      
+      countyTemp <- left_join(counties, data.tab2())
       
       pal <- colorQuantile(
         palette = "RdYlBu",
@@ -641,39 +631,57 @@ average <- eventReactive(c(input$ind, input$strt), {
     
   })
   
+
+######   county map for (tab 2 - single indicator) ######
+##### generate map (tab 2) #####
+
+# output$map <- renderLeaflet({
+#  
+#     mapTemp <- left_join(counties, data.tab2()) 
+#     
+#     pal <- colorQuantile(
+#       palette = "RdYlBu",
+#       n = 5,
+#       reverse = TRUE,
+#       domain = mapTemp$Mean
+#     )
+#     
+#     mapTemp %>%
+#       leaflet()  %>% 
+#       addTiles() %>%
+#       addPolygons(
+#         color = "#444444",
+#         weight = 1,
+#         smoothFactor = 0.1,
+#         fillOpacity = 0.6,
+#         fillColor = ~ pal(Mean),
+#         highlightOptions = highlightOptions(color = "white", weight = 2,
+#                                             bringToFront = TRUE),
+#         label = ~ (mapTemp$County),
+#         popup = paste0("This is ",mapTemp$County," County. The ",mapTemp$Definition," in this county is ",
+#                        round(mapTemp$Mean[mapTemp$County == mapTemp$County]),". The state average is ", round(mean(mapTemp$Mean, na.rm=T),2))
+#       ) %>%
+#       addLegend("topright",
+#                 pal = pal,
+#                 values = ~ Mean,
+#                 opacity = 1,
+#                 labFormat = labelFormat(),
+#                 title = input$ind 
+#       ) %>%
+#       clearControls()
+#   
+#   
+# })
+
+
+
+
+
+
   
-##### generate plot (tab 2) #####
+##### generate plot (tab 2 - single indicator) #####
   
-  # output$plot <- renderPlot({
-  # 
-  #   data.tab2() %>%
-  #     ggplot() +
-  #     geom_bar(
-  #       aes(
-  #         x = reorder(County, Mean),
-  #         y = Mean,
-  #         fill = selRegion,
-  #         alpha = selCounty
-  #       ),
-  #       stat = "identity",
-  #       position = "dodge"
-  #     ) +
-  #     xlab(label = "Counties") + ylab(input$ind) + guides(fill = FALSE, alpha = FALSE) +
-  #     geom_hline(
-  #       yintercept = mean(data.tab2()$Mean, na.rm = T),
-  #       color = "black",
-  #       alpha = 0.5
-  #     ) +
-  #     scale_alpha_discrete(range = c(0.3, 0.8)) +
-  #       scale_fill_manual(values = c("green","blue")) +
-  #       coord_flip() +
-  #       theme_update(axis.text.y = element_text(size=6), axis.text.x = element_text(size=10))+ 
-  #       ggtitle(paste0(input$cnty," county (dark blue) and its region (light blue) compared to others in the state (green) -   \n shown for ",input$ind, " ."))
-  #   
-  #   
-  #   #    
-  # })
-  
+
   output$plot <- renderPlotly({
     
     tab2.df <- data.tab2()

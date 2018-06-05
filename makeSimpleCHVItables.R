@@ -289,6 +289,66 @@ for (indicator in indicators) {
 simplifyCHVI("wildfire")
 
 
+#### make blank tracts file #################
+
+
+fileName <- impervious
+p1f <- tempfile()
+download.file(fileName, p1f, mode = "wb")
+temp <-
+  readxl::read_xlsx(p1f, sheet = "Data") %>% select(1:26) %>% .[, order(names(.))]
+
+names(temp) <- c(
+  "CA_decile",
+  "CA_RR",
+  "county_fips",
+  "county_name",
+  "denominator",
+  "estimate",
+  "geoname",
+  "geotype",
+  "geotypevalue",
+  "ind_definition",
+  "ind_id",
+  "LL_95CI",
+  "numerator",
+  "race_eth_code",
+  "race_eth_name",
+  "region_code",
+  "region_name",
+  "reportyear",
+  "RSE",
+  "SE",
+  "strata_one_code",
+  "strata_one_name",
+  "strata_two_code",
+  "strata_two_name",
+  "UL_95CI",
+  "version"
+)
+
+temp$reportyear <- as.character(as.numeric(temp$reportyear))
+
+# run it for pop weigthed imperv
+strat <-
+  'population-weighted' # use population-weighted or area-weighted for imperv
+
+# parse and write pop-weighted TRACT data
+blankTracts <- temp %>%
+  filter(geotype == "CT",
+         race_eth_name == "Total",
+         strata_one_name == strat)  %>% # here's where we can filter the data further
+  select(
+    county_name,
+    geotypevalue,
+    geotype,
+    region_name,
+    race_eth_name
+  ) 
+
+
+
+
 #### run for air conditioning ##############################
 
 indicator <- "ac"
@@ -361,6 +421,55 @@ temp2 %>% write.csv(paste0(
   "_county.csv"
 ),
 row.names = F) # it writes a file to your home directory with the name including the indicator and the geography
+
+temp3 <- left_join(blankTracts, {
+  temp %>%
+    filter(geotype == "CO")  %>% # here's where we can filter the data further
+    mutate(estimate = 100-estimate,
+           ind_definition = "Percent of households without air conditioning") %>%
+    select(
+      ind_definition,
+      county_name,
+      estimate,
+      LL_95CI,
+      UL_95CI,
+      numerator,
+      denominator
+    )
+}) %>% 
+  mutate(ind_definition = "Percent of households without air conditioning") %>%
+  select(
+    ind_definition,
+    county_name,
+    geotypevalue,
+    geotype,
+    estimate,
+    region_name,
+    LL_95CI,
+    UL_95CI,
+    numerator,
+    denominator,
+    race_eth_name
+  ) %>% # the file is parsed down to these columns only
+    mutate(ct10 = as.character(geotypevalue),
+           strata = "none",
+           ind = indicator)
+
+
+names(temp3) <- namesList
+
+temp3 %>% write.csv(
+  paste0(
+    workingPath,
+    "tables/tracts/CHVI_",
+    indicator,
+    "_tract.csv"
+  ),
+  row.names = F
+) # it writes a file to your home directory with the name including the indicator and the geography
+
+
+
 
 
 
@@ -442,6 +551,55 @@ temp2 %>% write.csv(
   row.names = F
 ) # it writes a file to your home directory with the name including the indicator and the geography
 
+
+
+temp3 <- left_join(blankTracts, {
+  temp %>%
+    filter(geotype == "CO", reportyear == strat)  %>% # here's where we can filter the data further
+    select(
+      ind_definition,
+      county_name,
+      estimate,
+      LL_95CI,
+      UL_95CI,
+      numerator,
+      denominator
+    )
+}) %>% select(
+  ind_definition,
+  county_name,
+  geotypevalue,
+  geotype,
+  estimate,
+  region_name,
+  LL_95CI,
+  UL_95CI,
+  numerator,
+  denominator,
+  race_eth_name
+) %>% # the file is parsed down to these columns only
+  mutate(ct10 = as.character(geotypevalue),
+         strata = strat,
+         ind = indicator)
+
+
+names(temp3) <- namesList
+
+temp3 %>% write.csv(
+  paste0(
+    workingPath,
+    "tables/tracts/CHVI_",
+    indicator,
+    "_",
+    strat,
+    "_tract.csv"
+  ),
+  row.names = F
+) # it writes a file to your home directory with the name including the indicator and the geography
+
+
+
+
 strat <- '2085' # use 2050 or 2085
 
 # parse and write 2085 COUNTY data
@@ -478,6 +636,50 @@ temp2 %>% write.csv(
   row.names = F
 ) # it writes a file to your home directory with the name including the indicator and the geography
 
+
+temp3 <- left_join(blankTracts, {
+  temp %>%
+    filter(geotype == "CO", reportyear == strat)  %>% # here's where we can filter the data further
+    select(
+      ind_definition,
+      county_name,
+      estimate,
+      LL_95CI,
+      UL_95CI,
+      numerator,
+      denominator
+    )
+}) %>% select(
+  ind_definition,
+  county_name,
+  geotypevalue,
+  geotype,
+  estimate,
+  region_name,
+  LL_95CI,
+  UL_95CI,
+  numerator,
+  denominator,
+  race_eth_name
+) %>% # the file is parsed down to these columns only
+  mutate(ct10 = as.character(geotypevalue),
+         strata = strat,
+         ind = indicator)
+
+
+names(temp3) <- namesList
+
+temp3 %>% write.csv(
+  paste0(
+    workingPath,
+    "tables/tracts/CHVI_",
+    indicator,
+    "_",
+    strat,
+    "_tract.csv"
+  ),
+  row.names = F
+) # it writes a file to your home directory with the name including the indicator and the geography
 
 
 #### run for impervious (twice) ##############################
@@ -1061,10 +1263,6 @@ temp2 %>% write.csv(
   row.names = F
 ) # it writes a file to your home directory with the name including the indicator and the geography
 
-
-
-
-
 strat <- 'total' # use metal, physical, total for disability
 
 # we will need to change these settings for some indicators that have different use of the strata or report years (heat)
@@ -1389,6 +1587,61 @@ temp2 %>% write.csv(paste0(
 ),
 row.names = F) # it writes a file to your home directory with the name including the indicator and the geography
 
+
+temp3 <- left_join(blankTracts, {
+  temp %>%
+    filter(
+      geotype == "CO",
+      race_eth_name == "Total",
+      strata_level_name_code == 5,
+      reportyear == 2013
+    )  %>% # here's where we can filter the data further
+    select(
+      ind_definition,
+      county_name,
+      estimate,
+      LL_95CI,
+      UL_95CI,
+      numerator,
+      denominator
+    )
+}) %>% select(
+  ind_definition,
+  county_name,
+  geotypevalue,
+  geotype,
+  estimate,
+  region_name,
+  LL_95CI,
+  UL_95CI,
+  numerator,
+  denominator,
+  race_eth_name
+) %>% # the file is parsed down to these columns only
+  mutate(ct10 = as.character(geotypevalue),
+         strata = "ViolentCrime",
+         ind = indicator)
+
+
+names(temp3) <- namesList
+
+temp3 %>% write.csv(
+  paste0(
+    workingPath,
+    "tables/tracts/CHVI_",
+    indicator,
+    "_tract.csv"
+  ),
+  row.names = F
+) # it writes a file to your home directory with the name including the indicator and the geography
+
+
+
+
+
+
+
+
 #### run for poverty (thrice) ##############################
 
 indicator <- "poverty"
@@ -1507,6 +1760,52 @@ temp2 <- temp %>%
 names(temp2) <- namesList
 
 temp2 %>% write.csv(paste0(workingPath,"tables/counties/CHVI_",indicator,"_",strat,"_county.csv"),row.names=F) # it writes a file to your home directory with the name including the indicator and the geography
+
+
+
+temp3 <- left_join(blankTracts, {
+  temp %>%
+    filter(geotype == "CO",
+           race_eth_name == "Total",
+           Poverty == strat,
+           reportyear == "2006-2010")  %>% # here's where we can filter the data further
+    select(
+      ind_definition,
+      county_name,
+      percent,
+      LL_95CI_percent,
+      UL_95CI_percent,
+      NumPov,
+      TotalPop,
+    )
+}) %>% select(
+  ind_definition,
+  county_name,
+  geotypevalue,
+  geotype,
+  percent,
+  region_name,
+  LL_95CI_percent,
+  UL_95CI_percent,
+  NumPov,
+  TotalPop,
+  race_eth_name
+) %>% # the file is parsed down to these columns only
+  mutate(ct10 = as.character(geotypevalue),
+         strata = strat,
+         ind = indicator)
+
+
+names(temp3) <- namesList
+
+temp3 %>% write.csv(
+  paste0(
+    workingPath,
+    "tables/tracts/CHVI_",indicator,"_",strat,
+    "_tract.csv"
+  ),
+  row.names = F
+) # it writes a file to your home directory with the name including the indicator and the geography
 
 
 
@@ -1774,8 +2073,8 @@ rm(list = ls())
 library(tidyverse)
 library(sf)
 
-#workingPath <- "~/CHVI_copy/data/" # work local
-workingPath <-"//phdeorlcsrvip01/Crossbranch/CDC_BRACE/Data/CHVI-CHPR Data/data/" # work on network
+workingPath <- "~/CHVI_copy/data/" # work local
+# workingPath <-"//phdeorlcsrvip01/Crossbranch/CDC_BRACE/Data/CHVI-CHPR Data/data/" # work on network
 
 setwd(paste0(workingPath, "tables/tracts/"))
 
@@ -1789,8 +2088,7 @@ for (file in files) {
       numratr = ifelse(is.na(numratr), as.numeric(as.character(numratr)), numratr),
       denmntr = ifelse(is.na(denmntr), as.numeric(as.character(denmntr)), denmntr),
       strata = ifelse(is.integer(strata), as.character(as.numeric(strata)), strata)
-    ) %>%
-    rename(county = cnty)
+    )
   
   if (exists("tractCHVIs")) {
     tractCHVIs <- bind_rows(tractCHVIs, temp)

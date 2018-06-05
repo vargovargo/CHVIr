@@ -598,21 +598,21 @@ average <- eventReactive(c(input$ind, input$strt), {
           popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
                          round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
                          ". The state average is ", round(average(),1)),
-                         group="Tract Quintiles") %>% 
-            addPolygons(
-              color = "#444444",
-              weight = 1,
-              smoothFactor = 0.1,
-              fillOpacity = 0.6,
-              fillColor = ~ pal2(est),
-              highlightOptions = highlightOptions(color = "white", weight = 2,
-                                                  bringToFront = TRUE),
-              popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
-                             round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
-                             ". The state average is ", round(average(),1)),
-              group="State Quintiles")  %>%
+          group="Tract Qunitiles") %>%
+        addPolygons(
+          color = "#444444",
+          weight = 1,
+          smoothFactor = 0.1,
+          fillOpacity = 0.6,
+          fillColor = ~ pal2(est),
+          highlightOptions = highlightOptions(color = "white", weight = 2,
+                                              bringToFront = TRUE),
+          popup = paste0("This is tract ", mapTemp$ct10, " in ",mapTemp$county," County. The ",mapTemp$def," in this tract is ",
+                         round(mapTemp$est,1),". The county average is ", round(mean(mapTemp$est, na.rm=T),1),
+                         ". The state average is ", round(average(),1)),
+          group="State Quintiles") %>%
           addLayersControl(
-            baseGroups = c("Tract Quintiles", "State Quintiles"),
+            baseGroups = c("Tract Qunitiles", "State Quintiles"),
             options = layersControlOptions(collapsed = TRUE)
           ) %>% 
           

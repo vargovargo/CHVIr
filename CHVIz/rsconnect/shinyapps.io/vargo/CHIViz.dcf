@@ -5,8 +5,8 @@ account: vargo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 335816
-bundleId: 1411816
+bundleId: 1413025
 url: https://vargo.shinyapps.io/chiviz/
-when: 1528175540.104
+when: 1528220280.517
 asMultiple: FALSE
 asStatic: FALSE

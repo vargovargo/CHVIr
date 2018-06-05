@@ -780,14 +780,14 @@ triple <- reactive({
                                                                                                          "Medium Exposure, High Sensitivity",
                                                                                                          "High Exposure, High Sensitivity"
                                                                                     )),
-            sign = ifelse(expTer == 1 & sensTer == 1, "rgba(14,137,68, 0.5)",
-                          ifelse(expTer == 1 & sensTer == 2,"rgba(205,225,141, 0.7)",
-                                 ifelse(expTer == 1 & sensTer == 3, "rgba(239,119,34, 0.8)",
-                                        ifelse(expTer == 2 & sensTer == 1, "rgba(155,200,213,.7)",
-                                               ifelse(expTer == 3 & sensTer == 1, "rgba(92,81,159,0.8)",
-                                                      ifelse(expTer == 2 & sensTer == 2, "rgba(232,232,232,0.7)",
-                                                             ifelse(expTer == 2 & sensTer == 3, "rgba(245,150,164,0.9)",
-                                                                    ifelse(expTer == 3 & sensTer == 2, "rgba(205,156,197,0.9)","rgba(234,17,129,1)"
+            sign = ifelse(expTer == 1 & sensTer == 1, "rgba(242,241,230, 0.5)",
+                          ifelse(expTer == 1 & sensTer == 2,"rgba(42,140,197, 0.7)",
+                                 ifelse(expTer == 1 & sensTer == 3, "rgba(51,101,147, 0.8)",
+                                        ifelse(expTer == 2 & sensTer == 1, "rgba(239,169,110,.7)",
+                                               ifelse(expTer == 3 & sensTer == 1, "rgba(203,111,107,0.8)",
+                                                      ifelse(expTer == 2 & sensTer == 2, "rgba(145,152,170,0.7)",
+                                                             ifelse(expTer == 2 & sensTer == 3, "rgba(149,123,152,0.9)",
+                                                                    ifelse(expTer == 3 & sensTer == 2, "rgba(137,136,164,0.9)","rgba(104,93,169,1)"
                                                                     )))))))),
             size = ntile(Population,29)
      )
@@ -865,15 +865,15 @@ output$vulnMap <- renderLeaflet({
       
       mapTemp2 <- left_join(counties, triple()) %>% rename(County = county)
       
-      pal <- colorFactor(c("#0E8944", 
-                           "#CDE18D", 
-                           "#9BC8D5",  
-                           "#E8E8E8", 
-                           "#5C519F",
-                           "#EF7722",
-                           "#CC9CC5",
-                           "#F596A4",
-                           "#EA1181"), mapTemp2$vulnerability)
+      pal <- colorFactor(c("#F2F1E6", 
+                           "#2A8CC5", 
+                           "#EFA96E",  
+                           "#9198AA", 
+                           "#CB6F6B",
+                           "#336593",
+                           "#8988A4",
+                           "#957B98",
+                           "#685DA9"), mapTemp2$vulnerability)
       
       
       mapTemp2 %>%

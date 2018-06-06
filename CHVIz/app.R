@@ -271,10 +271,10 @@ ui <-  fluidPage(
                ),
                
                fluidRow(column(8,
-                               wellPanel(plotlyOutput("plot", height = "600px"))
+                               wellPanel(leafletOutput("map", height = "600px"))
                ), 
                column(4,
-                      wellPanel(leafletOutput("map", height = "600px"))
+                      wellPanel(plotlyOutput("plot", height = "600px"))  
                )),
                wellPanel(DT::dataTableOutput("table"))
              ),

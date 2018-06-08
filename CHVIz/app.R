@@ -200,12 +200,15 @@ ui <-  fluidPage(
                       ),
                       
                       fluidRow(
-                        column(8,wellPanel(plotlyOutput("triplePlot",height = "600px"))
+                        column(8,wellPanel(plotlyOutput("triplePlot",height = "600px"),
+                                           downloadLink(outputId = "downloadVulnerabilityFigure",label = "Download the data in this figure")
+                                           )
                         ), 
-                        column(4,wellPanel(leafletOutput("vulnMap",height = "600px")))
+                        column(4,wellPanel(leafletOutput("vulnMap",height = "600px"),
+                                           downloadLink(outputId = "downloadVulnerabilityMap",label = "Download the data in this Map")))
                       )),
              
-             tabPanel("Single County",
+             tabPanel("County Snapshot",
                       # Create a new Row in the UI for selectInputs
                       
                       
@@ -220,7 +223,8 @@ ui <-  fluidPage(
                                            )),
                                p(uiOutput("downloadCHPR1"))
                         )),
-                      wellPanel(plotlyOutput("plotCounty",height = "600px")),
+                      wellPanel(plotlyOutput("plotCounty",height = "600px"),
+                                downloadLink(outputId = "downloadCountySnapshot",label = "Download the data in this figure")),
                       wellPanel(DT::dataTableOutput("countyTable"))
                       
              ),
@@ -271,15 +275,19 @@ ui <-  fluidPage(
                ),
                
                fluidRow(column(8,
-                               wellPanel(leafletOutput("map", height = "600px"))
+                               wellPanel(leafletOutput("map", height = "600px"),
+                                         downloadLink(outputId = "downloadSingleIndicatorMap",label = "Download the data in this Map")
+                                         )
                ), 
                column(4,
-                      wellPanel(plotlyOutput("plot", height = "600px"))  
+                      wellPanel(plotlyOutput("plot", height = "600px"),
+                                downloadLink(outputId = "downloadSingleIndicator",label = "Download the data in this figure")
+                                )  
                )),
                wellPanel(DT::dataTableOutput("table"))
              ),
 
-             tabPanel("Download your Data",
+             tabPanel("Query the Data",
                       fluidRow(
                         column(3,
                                selectInput("cntyDNLD",
@@ -385,9 +393,24 @@ server <- function(input, output, session) {
              ratio = ifelse(is.na(Value), 0, Value/CA_avg),
              Category = ifelse(ratio < 0.9, "below CA average",
                                ifelse(ratio > 1.1, "above CA average","around CA average")),
-             fillColor = ifelse(ratio < 0.9, "#91bfdb",
-                                ifelse(ratio > 1.1, "#fc8d59","#ffffbf")))
+             fillColor = ifelse(ratio < 0.9, "#F2F1E6",
+                                ifelse(ratio > 1.1, "#685DA9","#9198AA")))
   })
+  
+  
+  ##### Download the csv of (tab 1 - single county)  ######  
+  output$downloadCountySnapshot <- downloadHandler(
+    filename = function () {
+      paste0("countySnapshotFigure.csv")
+    },
+    
+    content = function(file) {
+      write.csv(data.tab1(), file, row.names = F)
+    }
+    
+  )
+  
+  
   
   
   ##### generate County (tab 1 - single county) Plot #####
@@ -428,7 +451,41 @@ server <- function(input, output, session) {
              yaxis = list(title = "Indicator and Strata", 
                           type = "category", 
                           dtick=1, 
-                          size=2)
+                          size=2), 
+             shapes = list(
+               list(
+               type = "rect", 
+               fillcolor = "#F2F1E6",
+               line = list(color = "#F2F1E6"),
+               opacity = .1,
+               y0 = 0, 
+               y1 = 1, 
+               yref = "paper",
+               x0 = 0, 
+               x1 = 0.9 
+             ), 
+             list(
+               type = "rect", 
+               fillcolor = "#9198AA",
+               line = list(color = "#9198AA"),
+               opacity = .1,
+               y0 = 0, 
+               y1 = 1, 
+               yref = "paper",
+               x0 = 0.9, 
+               x1 = 1.1 
+             ),
+             list(
+               type = "rect", 
+               fillcolor = "#685DA9",
+               line = list(color = "#685DA9"),
+               opacity = .1,
+               y0 = 0, 
+               y1 = 1, 
+               yref = "paper",
+               x0 = 1.1, 
+               x1 = max(tab1.df[["ratio"]]) 
+             ))
       )  %>%
       config(collaborate = FALSE,
              displaylogo = FALSE,
@@ -507,12 +564,25 @@ server <- function(input, output, session) {
              selRegion = ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1], 
                                 paste0("In ",CHVIdata$climReg[CHVIdata$county == input$cnty][1]," region"),
                                 "Outside region"),
-             countyColor = ifelse(County == input$cnty,"rgba(165,15,21, 1)", 
+             countyColor = ifelse(County == input$cnty,"rgba(104,93,169, 1)", 
                                   ifelse(Region == CHVIdata$climReg[CHVIdata$county == input$cnty][1],
-                                         "rgba(251,106,74, 0.5)",
-                                         "rgba(247,247,247, 0.3)")))
+                                         "rgba(145,152,170, 0.5)",
+                                         "rgba(242,241,230, 0.3)")))
     
   })
+  
+  
+  ##### Download the csv of (tab 2 - single indicator)  ######  
+  output$downloadSingleIndicator <- downloadHandler(
+    filename = function () {
+      paste0("singleIndicatorFigure.csv")
+    },
+    
+    content = function(file) {
+      write.csv(data.tab2(), file, row.names = F)
+    }
+    
+  )
   
   
 ##### generate table of the data (tab 2 - single indicator) #####
@@ -567,20 +637,28 @@ average <- eventReactive(c(input$ind, input$strt), {
         filter(COUNTYFI_1 == selectedFIPS()) %>%
         left_join(tractData()) 
       
-      countyTemp <- left_join(counties, data.tab2())
+      # countyTemp <- left_join(counties, data.tab2())
       
       pal <- colorQuantile(
-        palette = "RdYlBu",
+        palette = c("#685DA9",
+                    "#CB6F6B", 
+                    "#EFA96E",  
+                    "#2A8CC5",
+                    "#F2F1E6") ,
         n = 5,
         reverse = TRUE,
-        domain =  tractData()$est
+        domain =  mapTemp$est
       )
       
       pal2 <- colorQuantile(
-        palette = "RdYlBu",
+        palette =  c("#685DA9",
+                     "#CB6F6B", 
+                     "#EFA96E",  
+                     "#2A8CC5",
+                     "#F2F1E6"),
         n = 5,
         reverse = TRUE,
-        domain = data.tab2()$Mean
+        domain = tractData()$est
     
       )
       
@@ -618,13 +696,31 @@ average <- eventReactive(c(input$ind, input$strt), {
           
         addLegend("bottomleft",
                   pal = pal,
-                  values = ~ mapTemp$est,
+                  values = ~ na.exclude(mapTemp$est),
                   opacity = .4,
                   title = input$ind
         )
 
     
   })
+
+
+##### Download the csv of (tab 2 - single indicator map)  ######  
+output$downloadSingleIndicatorMap <- downloadHandler(
+  filename = function () {
+    paste0("singleIndicatorMapData.csv")
+  },
+  
+  content = function(file) {
+    write.csv({
+      tractData() %>%
+        filter(county == input$cnty)
+      }, file, row.names = F)
+  }
+  
+)
+
+
   
 
 ######   county map for (tab 2 - single indicator) ######
@@ -681,7 +777,7 @@ average <- eventReactive(c(input$ind, input$strt), {
     
     tab2.df <- data.tab2()
     
-    plot_ly(
+   plot_ly(
       data = tab2.df,
       x =  ~ round(Mean, 2),
       y =  ~ reorder(County, Mean),
@@ -697,11 +793,11 @@ average <- eventReactive(c(input$ind, input$strt), {
       showlegend = FALSE
     ) %>%
       layout(
-        title = paste0(input$cnty," county (red) and its region (pink) compared to others in the state -   \n shown for ",input$ind) ,
+        title = paste0(input$ind, "\n for California Counties \n (",input$cnty," county [dark], region [light], CA avg [dotted])"),
         margin = list(l = 130,
-                      t = 70),
+                      t = 105),
         xaxis = list(
-          title = input$ind,
+          title = ifelse(input$strt == "none", input$ind,paste0(input$ind," - ", input$strt)),
           autotick = TRUE,
           ticks = "outside",
           tick0 = 0,
@@ -712,8 +808,20 @@ average <- eventReactive(c(input$ind, input$strt), {
         ),
         yaxis = list(title = "Counties",
                      type = "categorical",
-                     dtick=2
+                     dtick=1,
+                     tickfont=list(
+                       size=8
                      )
+                     ), 
+        shapes = list(
+          type = "line", 
+          y0 = 0, 
+          y1 = 1, 
+          yref = "paper",
+          x0 = averages$stateAverage[averages$def == input$ind & averages$strata == input$strt], 
+          x1 = averages$stateAverage[averages$def == input$ind & averages$strata == input$strt], 
+          line = list(color = "black", dash = "dot"), opacity = .5
+        )
       ) %>%
       config(collaborate = FALSE,
              cloud = FALSE,
@@ -733,7 +841,7 @@ average <- eventReactive(c(input$ind, input$strt), {
           'hoverClosestCartesian'
         )
       )
-    
+
     
   })
   
@@ -796,6 +904,35 @@ triple <- reactive({
 
 })
 
+
+
+
+##### Download the csv of (vulnerability tab)  ######  
+output$downloadVulnerabilityFigure <- downloadHandler(
+  filename = function () {
+    paste0("vulnerabilityFigure.csv")
+  },
+  
+  content = function(file) {
+    write.csv(triple(), file, row.names = F)
+  }
+  
+)
+
+
+##### Download the csv of (vulnerability tab)  ######  
+output$downloadVulnerabilityMap <- downloadHandler(
+  filename = function () {
+    paste0("vulnerabilityMap.csv")
+  },
+  
+  content = function(file) {
+    write.csv(triple(), file, row.names = F)
+  }
+  
+)
+
+
 ##### make triple plot (tab 3) #####
   
   output$triplePlot <- renderPlotly({
@@ -823,7 +960,7 @@ triple <- reactive({
                 textfont = list(
                   size = 10,
                   color = toRGB("grey40"))) %>%
-      layout(title = paste0('Combined Vulnerabiltity from Exposure (',names(tri)[5], ')    \n and Sensitivity (',names(tri)[7],")") ,
+      layout(title = paste0('Combined Vulnerability from Exposure (',names(tri)[5], ')    \n and Sensitivity (',names(tri)[7],")") ,
              margin = list(l = 50,
                            t = 70),
              xaxis = list(
@@ -903,27 +1040,7 @@ output$vulnMap <- renderLeaflet({
     })
   
 
-  
-  
-##### Strata Interface for Download tab #####
-  
-  # output$chooseStrataDNLD <- renderUI({
-  #   
-  #   if(input$indDNLD =="All"){
-  #     return()
-  #   } else {
-  #     
-  #   selectInput("strtDNLD",
-  #               "Strata",{
-  #                 unique(
-  #                   as.character({CHVIdata %>% filter(def == input$indDNLD)}$strata)
-  #                 )
-  #                 
-  #               }
-  #   )}
-  # })
-  # 
-  
+
 
   data.dnld <- eventReactive(c(input$cntyDNLD, input$indDNLD),{
     
@@ -1068,7 +1185,7 @@ output$vulnMap <- renderLeaflet({
   })
   
   output$downloadNarrative <- renderUI({ 
-    HTML(paste0('<a href =', narratives$narrativeLink[narratives$def == input$ind],' target="_blank">Learn more about this Indicator</a>'))
+    HTML(paste0('<a href =', narratives$narrativeLink[narratives$def == input$ind],' target="_blank">Download the Narrative for this Indicator</a>'))
   })
   
   
@@ -1076,11 +1193,11 @@ output$vulnMap <- renderLeaflet({
   #   filename = function () {
   #     paste0(input$cnty,"CountyHealthProfileReport.pdf")
   #   },
-  #   
+  # 
   #   content = function(file) {
   #     file.copy(links$CHPR.Link[links$County %in% c(input$cnty, paste0(input$cnty," "))], file)
   #   }
-  #   
+  # 
   # )
   
 }

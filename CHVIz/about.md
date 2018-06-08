@@ -8,16 +8,16 @@ description: first page for R Resources on CDPH User
 
 ## Welcome to CCHVIz 
 
-#### CCHVIz is the interactive data visualization platform for the Climate and Health Vulnerability Indicators (CHVIs). It is produced by the CA Department of Public Health's [Office of Health Equity](http://bit.ly/CDPHOHE). 
+#### CCHVIz is the interactive data visualization platform for the Climate Change & Health Vulnerability Indicators for California (CCHVIs). It is produced by the CA Department of Public Health's [Office of Health Equity](http://bit.ly/CDPHOHE).
 
+The CalBRACE Project produced Climate Change and Health 
+Vulnerability Indicators to help stakeholders better understand the people and places that are more susceptible to adverse health impacts associated with climate change. They are a suite of 21 indicators (right) of climate exposure, population sensitivity, and adaptive capacity to the impacts of climate change. These indicators are being used by local and state programs to plan to meet the needs of the communities most at risk of harm from climate change.  
 
-The [CalBRACE](bit.ly/calbrace) Project produced climate change and health vulnerability indicators for download on our 'Download Your Data' tab or from the [program's website](https://www.cdph.ca.gov/Programs/OHE/Pages/CC-Health-Vulnerability-Indicators.aspx). Each indicator includes the data in an Excel file as well as a narrative in PDF format. Each narrative describes the indicator’s significance to climate change and health, the evidence that links the indicator to health outcomes, data sources, bibliographic references, methodology, and limitations that impact the interpretation of the indicator. 
-
-Visit [CalBRACE's website](https://www.cdph.ca.gov/Programs/OHE/Pages/CC-Health-Vulnerability-Indicators.aspx) to download details of each indicator’s significance and methods involved in its development. 
-
+Indicator data are available for download on the 'Download Your Data' tab or from the [CalBRACE website](bit.ly/calbrace). You can also download narratives describing each indicator’s significance to climate change and health, the evidence that links the indicator to health outcomes, data sources, bibliographic references, methodology, and limitations that impact the interpretation of the indicator.
 
 ## Latest Updates
 
-- Added race to the county data available through the __Download__ tab.
-- Census tract graphs now available for some indicators on the __Single Indicator__ tab.
+- Vulnerability tab: State map added and color scheme enhanced
+- Single Indicator tab: Larger map viewing and state average added to graph
+- Demonstration of Vulnerability viz added to 'How tos'
 

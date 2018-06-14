@@ -133,29 +133,8 @@ ui <-  fluidPage(
              
              tabPanel("About",
                       fluidRow(
-                        column(
-                          5,
                           includeMarkdown("about.md")
-                        ),
-                        column(7,
-                          tags$br(),
-                          tags$br(),
-                          img(
-                            class = "img-polaroid",
-                            src = "https://www.cdph.ca.gov/Programs/OHE/PublishingImages/Policy%20Unit/CDPH-Climate-change-and-health-impacts-diagram.png",
-                            width = 700,
-                            alt = "Impact of Climate Change on Human Health and Exacerbation of Existing Inquities `(`Adapted from CDC, J. Patz`)`."
-                          ),
-                          tags$br(),
-                          tags$br(),
-                          img(
-                            class = "img-polaroid",
-                            src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/chviTable.png",
-                            width = 700,
-                            alt = "Table of Climate Change & Health Vulnerability Indicators"
-                          )
-                        )
-                        )
+                      )
                       ),
              
              tabPanel(title = "Vulnerability", 

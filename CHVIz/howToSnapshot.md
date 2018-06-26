@@ -11,12 +11,11 @@ description: Tutorial of how to use
 
 ## County Snapshot Tab Tutorial
 
-#### _1_ Use the drop down menu to select a county of interest.
+1 Use the drop down menu to select a county of interest.
 
-#### _2_ Download the County's Climate and Health Profile for more information.
+2 Download the County's Climate and Health Profile for more information.
 
-#### _3_ Click on the camera icon to download an image of the plot for sharing. 
+3 Download a csv of the resulting query (county scale and race-specific, where available). 
 
-#### _4_ Download the raw data used to create the chart. 
+4  View a table of the data shown in the chart. 
 
-#### _5_ View a table of the data shown in the chart. 

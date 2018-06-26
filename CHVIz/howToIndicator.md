@@ -9,7 +9,7 @@ description: first page for R Resources on CDPH User
 ![](https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/indicator.png)
 
 
-## Vulnerability Tab Tutorial
+## Single Indicator Tab Tutorial
 
 #### _1_ Use the drop down menu to select a county of interest.
 

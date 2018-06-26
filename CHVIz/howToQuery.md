@@ -1,12 +1,13 @@
 ---
 layout: page
-title: CHVIz Vulnerability How To
+title: CHVIz Vulnerability
 tagline:interactive data visualization platform for the CHVIz
-description: Tutorial for using the Vulnerability Page
+description: first page for R Resources on CDPH User
 
 ---
 
 ![](https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png)
+
 
 ## Vulnerability Tab Tutorial
 
@@ -17,6 +18,4 @@ description: Tutorial for using the Vulnerability Page
 #### _3_ Use the plot tools to zoom in on an area of interest, specific cases, or download an image of the plot for sharing. 
 
 #### _4_ Interact with the map to lean more about a county of interest. 
-
-#### _5_ Download the raw data used to create the map. 
 

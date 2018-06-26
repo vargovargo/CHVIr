@@ -341,7 +341,28 @@ ui <-  fluidPage(
                                 includeMarkdown("howToVuln.md"))
                                 
                          )
-                         )
+                         ),
+              tabPanel("The County Snapshot Page",
+                                    fluidRow(
+                                      column(4,
+                                             includeMarkdown("howToSnapshot.md"))
+                                      
+                                    )
+                         ),
+              tabPanel("The Single Indicator Page",
+                       fluidRow(
+                         column(4,
+                                includeMarkdown("howToIndicator.md"))
+                         
+                       )
+              ),
+              tabPanel("The Query Your Data Page",
+                       fluidRow(
+                         column(4,
+                                includeMarkdown("howToQuery.md"))
+                         
+                       )
+              )
                        )
   #####  Finish Additional  #####
              

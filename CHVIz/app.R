@@ -117,12 +117,13 @@ narratives <-
 
 ##### Define UI for application that draws a histogram #####
 ui <-  fluidPage(
-  div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
+   div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
       titlePanel(
         title="",
         windowTitle="CHVIz"
       )
   ),
+  
   
   navbarPage(position = "fixed-top", 
              header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
@@ -130,9 +131,27 @@ ui <-  fluidPage(
              title = div("CCHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
                                    ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
              )),
-            
              
-             tabPanel("About",
+             tags$head(
+               tags$style(HTML("
+      
+      a {
+               color: #1F86C8;
+                 text-decoration: none;
+               background-color: transparent;
+               -webkit-text-decoration-skip: objects;
+             }
+             
+             a:hover {
+               color: #1E5493;
+                 text-decoration: underline;
+             }
+
+    "))
+             ),
+             
+            
+           tabPanel("About",
                       fluidRow(
                           includeMarkdown("about.md")
                       )

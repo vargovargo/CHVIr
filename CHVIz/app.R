@@ -125,32 +125,46 @@ ui <-  fluidPage(
   ),
   
   
-  navbarPage(position = "fixed-top", 
-             header = tags$style(type="text/css", "body {padding-top: 70px;}"), 
-             theme = shinytheme("flatly"),
-             title = div("CCHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
-                                   ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
-             )),
+  navbarPage(
+    position = "fixed-top",
+    header = tags$head(
+      tags$style(
+        HTML(
+          "
+          
+          a {
+          color: #1F86C8;
+          text-decoration: none;
+          background-color: transparent;
+          -webkit-text-decoration-skip: objects;
+          }
+          
+          a:hover {
+          color: #1E5493;
+          text-decoration: underline;
+          }
+          
+          "
+        )
+        ),
+      tags$style(type = "text/css", "body {padding-top: 70px;}")
+        ),
+    theme = shinytheme("flatly"),
+    title = div(
+      "CCHVIz",
+      a(
+        href = "https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx"
+        ,
+        img(
+          src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/CDPHLogo.gif",
+          height = "45",
+          style = "position: relative; top: -12px; right: 0 px;"
+        )
+      )
+    ),
+    
              
-             tags$head(
-               tags$style(HTML("
-      
-      a {
-               color: #1F86C8;
-                 text-decoration: none;
-               background-color: transparent;
-               -webkit-text-decoration-skip: objects;
-             }
              
-             a:hover {
-               color: #1E5493;
-                 text-decoration: underline;
-             }
-
-    "))
-             ),
-             
-            
            tabPanel("About",
                       fluidRow(
                           includeMarkdown("about.md")

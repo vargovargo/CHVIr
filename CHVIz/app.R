@@ -130,6 +130,7 @@ ui <-  fluidPage(
              title = div("CCHVIz",a(href="https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx" 
                                    ,img(src="https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/CDPHLogo.gif", height= "45", style = "position: relative; top: -12px; right: 0 px;")
              )),
+            
              
              tabPanel("About",
                       fluidRow(

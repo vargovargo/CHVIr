@@ -17,5 +17,5 @@ description: Tutorial of how to use
 
 3 Download a csv of the resulting query (county scale and race-specific, where available). 
 
-4  View a table of the data shown in the chart. 
+4 View a table of the data shown in the chart. 
 

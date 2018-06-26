@@ -11,11 +11,11 @@ description: first page for R Resources on CDPH User
 
 ## Query Your Data Tutorial
 
-#### _1_ Use the drop down menu to select a county of interest.
+1 Use the drop down menu to select a county of interest.
 
-#### _2_ Use the drop down menu to select an indicator of interest.
+2 Use the drop down menu to select an indicator of interest.
 
-#### _3_ Use the plot tools to zoom in on an area of interest, specific cases, or download an image of the plot for sharing. 
+3 Use the plot tools to zoom in on an area of interest, specific cases, or download an image of the plot for sharing. 
 
-#### _4_ View a table of the data shown in the chart. 
+4 View a table of the data shown in the chart. 
 

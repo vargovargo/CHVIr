@@ -10,13 +10,13 @@ description: Tutorial for using the Vulnerability Page
 
 ## Vulnerability Tab Tutorial
 
-#### _1_ Use the drop down menu to select a climate-related exposure indicator of interest
+1 Use the drop down menu to select a climate-related exposure indicator of interest.
 
-#### _2_ Use the drop down menu to select a indicator of population sensitivity
+2 Use the drop down menu to select a indicator of population sensitivity.
 
-#### _3_ Use the plot tools to zoom in on an area of interest, specific cases, or download an image of the plot for sharing. 
+3 Use the plot tools to zoom in on an area of interest, specific cases, or download an image of the plot for sharing. 
 
-#### _4_ Interact with the map to lean more about a county of interest. 
+4 Interact with the map to lean more about a county of interest. 
 
-#### _5_ Download the raw data used to create the map. 
+5 Download the raw data used to create the map. 
 

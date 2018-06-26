@@ -11,18 +11,18 @@ description: first page for R Resources on CDPH User
 
 ## Single Indicator Tab Tutorial
 
-#### _1_ Use the drop down menu to select a county of interest.
+1 Use the drop down menu to select a county of interest.
 
-#### _2_ Use the drop down menu to select an indicator of interest.
+2 Use the drop down menu to select an indicator of interest.
 
-#### _3_ If applicable, you may select different strata of the . 
+3 If applicable, you may select different strata of the . 
 
-#### _4_ Download the Narrative for more information on the indicator, including its source and relevance to public health.
+4 Download the Narrative for more information on the indicator, including its source and relevance to public health.
 
-#### _5_ Toggle the color scale used in the map (using only the county's data or the entire state's).
+5 Toggle the color scale used in the map (using only the county's data or the entire state's).
 
-#### _6_ Click on the camera icon to download an image of the plot for sharing. 
+6 Click on the camera icon to download an image of the plot for sharing. 
 
-#### _7_ Download the raw data used to create the map. 
+7 Download the raw data used to create the map. 
 
-#### _8_ View a table of the data shown in the chart.
+8 View a table of the data shown in the chart.

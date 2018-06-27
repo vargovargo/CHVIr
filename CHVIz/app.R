@@ -118,27 +118,7 @@ narratives <-
 
 ##### Define UI for application that draws a histogram #####
 ui <-  fluidPage(
-  header = tags$head(
-    tags$style(
-      HTML(
-        "
-          
-          a {
-          color: #1F86C8;
-          text-decoration: none;
-          background-color: transparent;
-          -webkit-text-decoration-skip: objects;
-          }
-          
-          a:hover {
-          color: #1E5493;
-          text-decoration: underline;
-          }
-          
-          "
-      )
-    )), 
-   div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
+     div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
       titlePanel(
         title="",
         windowTitle="CHVIz"

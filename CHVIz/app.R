@@ -46,6 +46,26 @@ CHVIdata <- left_join(x = CHVIdata, y = {
       "Percent of households with no vehicle ownership",
       "Percent of population currently living in very high wildfire risk areas"
     ),
+    defHealth = c(
+      "Air conditioning (AC) is an important protective factor against heat-related morbidity and mortality.",
+      "Urban greening, such as parks and trees, may have a local cooling effect.",
+      "Children are especially vulnerable because they are rapidly growing, both physically and mentally.",
+      "Safe neighborhoods that are free of crime and violence are an integral component of healthy neighborhoods.",
+      "Those with disabilities face disadvantages with limited resources and capacity during the phases of evacuation, response, and recovery.",
+      "Education is a key pathway to employment, housing, transportation, health insurance, and other basic necessities for a healthy life.",
+      "People aged 65 and older are especially vulnerable to the health impacts of climate change.",
+      "Heat waves are associated with increased hospital admissions for cardiovascular, kidney stones, mental health, diabetes, and respiratory disorders.",
+      "Impervious surfaces retain heat and make urban areas warmer than the surrounding non-urban areas.",
+      "Insurance coverage is a key determinant of timely access and utilization of health services.",
+      "Linguistic isolation may limit understanding of health warnings. Also extreme weather can disrupt the management of chronic conditions for the socially or linguistically isolated.",
+      "Working in an environment that is excessively hot poses a risk factor for heat health effects among persons who work outdoors.",
+      "Climate change is projected to increase cardiovascular and respiratory health impacts associated with ground-level ozone.",
+      "PM2.5 is capable of reaching deep into the lungs and causing a host of diseases.",
+      "Poverty limits the acquisition of basic material necessities and it can impact the ability to live a healthy life.",
+      "Rising sea levels can contaminate drinking water, flood homes and infrastructure, and displace residents and employers. The impacts include toxic exposures, mental and physical trauma, and food insecurity.",
+      "Transportation improves access to evacuation and shelter from climate hazards, such as wildfire, air pollution, heat waves, and flooding.",
+      "Wildfires can lead to injuries and deaths from burns, smoke inhalation, and displacement."
+    ),
     defShort = c(
       "% HH w/o AC",
       "% w/o Tree Canopy",
@@ -263,14 +283,14 @@ ui <-  fluidPage(
                "Single Indicator",
                
                fluidRow(
-                 column(3,
+                 column(2,
                         selectInput("cnty",
                                     "Highlight County",
                                     c(sort(unique(as.character(CHVIdata$county)))
                                     ))
                  ),
                  
-                 column(3,
+                 column(2,
                         selectInput("ind",
                                     "Select an Indicator",
                                     c("Percent of population aged 65 years or older",
@@ -291,7 +311,7 @@ ui <-  fluidPage(
                                       "Percent impervious surface cover"
                                     ))),
                  
-                 # column(3,
+                 # column(2,
                  #        selectInput("ind",
                  #                    "Select an Indicator",
                  #                    c("Projected number of extreme heat days",
@@ -313,10 +333,11 @@ ui <-  fluidPage(
                  #                      "Percent without tree canopy coverage",
                  #                      "Percent impervious surface cover"
                  #                    ))),
-                 column(3,
+                 column(2,
                         uiOutput("chooseStrata")
                  ),
-                 column(3, 
+                 column(6,
+                        p(uiOutput("blurb")),
                         p(uiOutput("downloadNarrative"))
                  )
                  
@@ -1292,6 +1313,12 @@ output$vulnMap <- renderLeaflet({
   output$downloadNarrative <- renderUI({ 
     HTML(paste0('<a href =', narratives$narrativeLink[narratives$def == input$ind],' target="_blank">Download the Narrative for this Indicator</a>'))
   })
+  
+  
+  output$blurb <- renderUI({ 
+      h3(unique(CHVIdata$defHealth[CHVIdata$def == input$ind]))
+    })
+  
   
   
   # output$downloadCHPR2 <- downloadHandler(

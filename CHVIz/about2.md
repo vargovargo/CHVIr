@@ -35,5 +35,5 @@ description: first page for R Resources on CDPH User
 
 - Vulnerability tab: State map added and color scheme enhanced
 - Single Indicator tab: Larger map viewing and state average added to graph
-- Demonstration of Vulnerability viz added to 'How tos'
+
 

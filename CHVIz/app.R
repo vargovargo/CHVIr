@@ -23,6 +23,7 @@ CHVIdata$def <-
     "Percent impervious surface cover",
     CHVIdata$def
   )
+
 CHVIdata <- left_join(x = CHVIdata, y = {
   data.frame(
     def = c(
@@ -117,6 +118,26 @@ narratives <-
 
 ##### Define UI for application that draws a histogram #####
 ui <-  fluidPage(
+  header = tags$head(
+    tags$style(
+      HTML(
+        "
+          
+          a {
+          color: #1F86C8;
+          text-decoration: none;
+          background-color: transparent;
+          -webkit-text-decoration-skip: objects;
+          }
+          
+          a:hover {
+          color: #1E5493;
+          text-decoration: underline;
+          }
+          
+          "
+      )
+    )), 
    div(style="background-color:#FEFEFE;padding: 1px 0px;height: 0px",
       titlePanel(
         title="",
@@ -165,24 +186,24 @@ ui <-  fluidPage(
     
              
              
-           tabPanel("About",
-                      fluidRow(
-                          includeMarkdown("about.md")
-                      ),
-                    fluidRow(
-                      column(3, wellPanel(includeMarkdown("about2.md"))), 
-                      column(9, 
-                             wellPanel(img(
-                               class = "img-polaroid",
-                               src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/chviTable.png",
-                               alt = "Table of the Indicators",
-                               objectfit = "contain",
-                               height = "auto",
-                               width ="auto"
-                             )))
-                      
-                    )
-                      ),
+    tabPanel("About",
+             fluidRow(
+               includeMarkdown("about.md"), hr()
+             ),
+             fluidRow(
+               column(5,includeMarkdown("about2.md")),
+               column(7,br(),br(),br(),
+                      img(
+                        class = "img-polaroid",
+                        src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/chviTable.png",
+                        alt = "Table of the Indicators",
+                        objectfit = "contain",
+                        height = "auto",
+                        width ="auto"
+                      ))
+               
+             )
+    ),
              
              tabPanel(title = "Vulnerability", 
                       fluidRow(
@@ -287,7 +308,7 @@ ui <-  fluidPage(
                                       "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
                                       "Percent of households with no vehicle ownership",
                                       "Percent without tree canopy coverage",
-                                      "Percent impervious surface cover",
+                                      "Percent impervious surface cover"
                                     ))),
                  
                  # column(3,

@@ -168,7 +168,20 @@ ui <-  fluidPage(
            tabPanel("About",
                       fluidRow(
                           includeMarkdown("about.md")
-                      )
+                      ),
+                    fluidRow(
+                      column(3, wellPanel(includeMarkdown("about2.md"))), 
+                      column(9, 
+                             wellPanel(img(
+                               class = "img-polaroid",
+                               src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/chviTable.png",
+                               alt = "Table of the Indicators",
+                               objectfit = "contain",
+                               height = "auto",
+                               width ="auto"
+                             )))
+                      
+                    )
                       ),
              
              tabPanel(title = "Vulnerability", 
@@ -273,10 +286,8 @@ ui <-  fluidPage(
                                       "Percent of population employed and aged > 16 working outdoors",
                                       "Overall, concentrated, and child (0 to 18 years of age) poverty rate",
                                       "Percent of households with no vehicle ownership",
-                                      "Percent of households without air conditioning",
                                       "Percent without tree canopy coverage",
                                       "Percent impervious surface cover",
-                                      "Projected number of extreme heat days"
                                     ))),
                  
                  # column(3,
@@ -394,30 +405,61 @@ ui <-  fluidPage(
                "How to Use",
               tabPanel("The Vulnerability Page",
                        fluidRow(
-                         column(4,
-                                includeMarkdown("howToVuln.md"))
+                         column(3,
+                                wellPanel(includeMarkdown("howToVuln.md"))),
+                         column(9, 
+                                wellPanel(img(
+                                  class = "img-polaroid",
+                                  src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png",
+                                  alt = "How To Vulnerability Page",
+                                  objectfit = "contain"
+                                )))
                                 
                          )
                          ),
               tabPanel("The County Snapshot Page",
                                     fluidRow(
-                                      column(4,
-                                             includeMarkdown("howToSnapshot.md"))
+                                      column(3,
+                                             wellPanel(includeMarkdown("howToSnapshot.md"))),
+                                      column(9, 
+                                             wellPanel(img(
+                                               class = "img-polaroid",
+                                               src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/snapshot.png",
+                                               alt = "How To County Snapshot Page",
+                                               objectfit = "contain",
+                                               height = "auto",
+                                               width ="auto"
+                                             )))
                                       
                                     )
                          ),
               tabPanel("The Single Indicator Page",
                        fluidRow(
-                         column(4,
-                                includeMarkdown("howToIndicator.md"))
+                         column(3,
+                                wellPanel(includeMarkdown("howToIndicator.md"))),
+                         column(9, 
+                                wellPanel(img(
+                                  class = "img-polaroid",
+                                  src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/indicator.png",
+                                  alt = "How To Indicator Page", 
+                                  height = "auto",
+                                  width ="auto"
+                                )))
                          
                        )
               ),
               tabPanel("The Query Your Data Page",
                        fluidRow(
-                         column(4,
-                                includeMarkdown("howToQuery.md"))
+                         column(3,
+                                wellPanel(includeMarkdown("howToQuery.md"))),
                          
+                         column(9, 
+                                wellPanel(img(
+                                  class = "img-polaroid",
+                                  src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/query.png",
+                                  alt = "How To Query Page"
+                                )))
+                        
                        )
               )
                        )
@@ -705,7 +747,7 @@ average <- eventReactive(c(input$ind, input$strt), {
                     "#F2F1E6") ,
         n = 5,
         reverse = TRUE,
-        domain =  mapTemp$est
+        domain =  na.exclude(mapTemp$est)
       )
       
       pal2 <- colorQuantile(
@@ -716,7 +758,7 @@ average <- eventReactive(c(input$ind, input$strt), {
                      "#F2F1E6"),
         n = 5,
         reverse = TRUE,
-        domain = tractData()$est
+        domain = na.exclude(tractData()$est)
     
       )
       
@@ -753,10 +795,14 @@ average <- eventReactive(c(input$ind, input$strt), {
           ) %>% 
           
         addLegend("bottomleft",
-                  pal = pal,
-                  values = ~ na.exclude(mapTemp$est),
+                  colors =  c("#685DA9",
+                              "#CB6F6B", 
+                              "#EFA96E",  
+                              "#2A8CC5",
+                              "#F2F1E6"),
                   opacity = .4,
-                  title = input$ind
+                  title = input$ind,
+                  labels = c("most vulnerable (top 20th percentile)","","","","least vulnerable (bottom 20th percentile)")
         )
 
     

@@ -6,8 +6,6 @@ description: Tutorial of how to use
 
 ---
 
-![](https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/snapshot.png)
-
 
 ## County Snapshot Tab Tutorial
 

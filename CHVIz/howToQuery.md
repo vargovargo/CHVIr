@@ -6,9 +6,6 @@ description: first page for R Resources on CDPH User
 
 ---
 
-![](https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png)
-
-
 ## Query Your Data Tutorial
 
 1 Use the drop down menu to select a county of interest.

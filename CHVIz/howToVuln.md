@@ -6,8 +6,6 @@ description: Tutorial for using the Vulnerability Page
 
 ---
 
-![](https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png)
-
 ## Vulnerability Tab Tutorial
 
 1 Use the drop down menu to select a climate-related exposure indicator of interest.

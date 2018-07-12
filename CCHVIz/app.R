@@ -177,7 +177,7 @@ ui <-  fluidPage(
         href = "https://www.cdph.ca.gov/Programs/OHE/Pages/CCHEP.aspx"
         ,
         img(
-          src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/CDPHLogo.gif",
+          src = "CDPHLogo.gif",
           height = "45",
           style = "position: relative; top: -12px; right: 0 px;"
         )
@@ -192,10 +192,10 @@ ui <-  fluidPage(
              ),
              fluidRow(
                column(5,includeMarkdown("about2.md")),
-               column(7,br(),br(),br(),
+               column(7,br(),br(),
                       img(
                         class = "img-polaroid",
-                        src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/chviTable.png",
+                        src = "chviTable.png",
                         alt = "Table of the Indicators",
                         objectfit = "contain",
                         height = "auto",
@@ -239,7 +239,7 @@ ui <-  fluidPage(
                         column(2,
                                img(
                                  class = "img-polaroid",
-                                 src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerabilityLegend.png",
+                                 src = "vulnerabilityLegend.png",
                                  alt = "Vulnerability Bivariate Legend"
                                )
                         )
@@ -432,7 +432,7 @@ ui <-  fluidPage(
                          column(9, 
                                 wellPanel(img(
                                   class = "img-polaroid",
-                                  src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/vulnerability2.png",
+                                  src = "vulnerability2.png",
                                   alt = "How To Vulnerability Page",
                                   objectfit = "contain"
                                 )))
@@ -446,7 +446,7 @@ ui <-  fluidPage(
                                       column(9, 
                                              wellPanel(img(
                                                class = "img-polaroid",
-                                               src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/snapshot.png",
+                                               src = "snapshot.png",
                                                alt = "How To County Snapshot Page",
                                                objectfit = "contain",
                                                height = "auto",
@@ -462,7 +462,7 @@ ui <-  fluidPage(
                          column(9, 
                                 wellPanel(img(
                                   class = "img-polaroid",
-                                  src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/indicator.png",
+                                  src = "indicator.png",
                                   alt = "How To Indicator Page", 
                                   height = "auto",
                                   width ="auto"
@@ -478,7 +478,7 @@ ui <-  fluidPage(
                          column(9, 
                                 wellPanel(img(
                                   class = "img-polaroid",
-                                  src = "https://raw.githubusercontent.com/vargovargo/CHVIr/master/CHVIz/images/query.png",
+                                  src = "query.png",
                                   alt = "How To Query Page"
                                 )))
                         
@@ -919,7 +919,7 @@ output$downloadSingleIndicatorMap <- downloadHandler(
       showlegend = FALSE
     ) %>%
       layout(
-        title = paste0(input$ind, "\n for California Counties \n (",input$cnty," county [dark], region [light], CA avg [dotted])"),
+        title = paste0(input$ind, " \n for California Counties \n (",input$cnty," [dark], Climate region [light], CA avg [dotted])"),
         margin = list(l = 130,
                       t = 105),
         xaxis = list(
@@ -1086,7 +1086,7 @@ output$downloadVulnerabilityMap <- downloadHandler(
                 textfont = list(
                   size = 10,
                   color = toRGB("grey40"))) %>%
-      layout(title = paste0('Combined Vulnerability from Exposure (',names(tri)[5], ')    \n and Sensitivity (',names(tri)[7],")") ,
+      layout(title = paste('Combined Vulnerability from Exposure (',names(tri)[5],') \n and Sensitivity (',names(tri)[7],")") ,
              margin = list(l = 50,
                            t = 70),
              xaxis = list(
